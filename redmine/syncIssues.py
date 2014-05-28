@@ -1,40 +1,79 @@
+import sys
 import uuid
 import psycopg2
 from redmine import Redmine
 
+def getProject(name, redmine):
+	prjs = redmine.project.all()
+	for pj in prjs:
+		if pj.name == name:
+			return pj
+	return None
+
+
+def getPerson(mail, redmine):
+	persons = redmine.user.all()
+	for person in persons:
+		if person.mail == mail:
+			return person
+	return None
+
+
+def getStatus(sid, redmine):
+	statuses = redmine.status.all()
+	for status in statuses:
+		if status.id == sid:
+			return status
+	return None
+
+
+
+
+
 class RProject:
-	def __init__(self, id, parent_id, name, desc):
-		self.id = id
+	def __init__(self, sid, parent_id, name, desc):
+		self.id = sid
 		self.parent_id = parent_id
 		self.name = name
 		self.desc = desc
 
 	def __str__(self):
 		return str(self.id) + " " + self.name + " " + str(self.parent_id)
- 
+
 	@staticmethod
 	def read(cur):
-		sql = "select id,name,description,is_public,parent_id,created_on,updated_on,identifier,status,lft,rgt from projects where parent_id = 2"
+		sql = "select id,name,description,parent_id from projects where parent_id = 2"
 		cur.execute(sql);
 		rows = cur.fetchall();
 		projects = []
-		for id,name,desc,is_p,p_id,c_on,u_on,ident,status,lft,rgt in rows:
-			rp = RProject(id,p_id,name,desc)
+		for sid,name,desc,p_id in rows:
+			rp = RProject(sid,p_id,name,desc)
 			projects.append(rp)
 
 		return projects
 
 
+	''' obtiene un projecto de la lista de proyectos por id '''
+	@staticmethod
+	def getProject(projects,sid):
+		for prj in projects:
+			if prj.id == sid:
+				return prj
+		return None
+
 
 	def write(self,redmine):
-		id = uuid.uuid4().__str__().replace('-','')
-		pj = redmine.project.create(name=self.name, identifier=id, description=self.desc, is_public=True, parent_id=13, inherit_members=True)
+		sid = uuid.uuid4().__str__().replace('-','')
+		redmine.project.create(name=self.name, identifier=sid, description=self.desc, is_public=True, parent_id=13, inherit_members=True)
+
+
+
 
 
 
 class RIssue:
-	def __init__(self, id, project_id, subject, desc, status_id, assigned_mail, author_mail, created_on, updated_on, start_date, parent_id, root_id):
-		self.id = id
+	def __init__(self, sid, project_id, subject, desc, status_id, assigned_mail, author_mail, created_on, updated_on, start_date, parent_id, root_id):
+		self.id = sid
 		self.project_id = project_id
 		self.subject = subject
 		self.desc = desc
@@ -59,7 +98,7 @@ class RIssue:
 		rows = cur.fetchall()
 
 		count = 0
-		for id, tracker_id, project_id, subject, desc, due_date, category_id, status_id, assigned_to_id, priority_id, fixed_version_id, author_id, created_on, updated_on, start_date, done_ratio, parent_id, root_id in rows:
+		for sid, tracker_id, project_id, subject, desc, due_date, category_id, status_id, assigned_to_id, priority_id, fixed_version_id, author_id, created_on, updated_on, start_date, done_ratio, parent_id, root_id in rows:
 
 			if author_id == None:
 				continue
@@ -75,10 +114,10 @@ class RIssue:
 			if "@" not in author_mail:
 				continue
 			
-                        sql = "select mail from users where id = " + str(assigned_to_id)
-                        cur.execute(sql);
-                        rows2 = cur.fetchall();
-                        assigned_mail = rows2[0][0];
+			sql = "select mail from users where id = " + str(assigned_to_id)
+			cur.execute(sql);
+			rows2 = cur.fetchall();
+			assigned_mail = rows2[0][0];
 
 			if "@" not in assigned_mail:
 				continue
@@ -91,6 +130,16 @@ class RIssue:
 		print count
 
 
+	def write(self,redmine,projects):
+		
+		rproj = RProject.getProject(projects, self.project_id)
+		
+		proj = getProject(rproj.name, redmine)
+		
+		
+		
+		
+		redmine.issue.create(project_id=proj.id)
 
 try:
 	redmine = Redmine("https://redmine-comp.econo.unlp.edu.ar",username="usuario",password="clave", requests={'verify':False})
@@ -107,8 +156,8 @@ try:
 	con2.close();
 		
 except psycopg2.DatabaseError, e:
-    print 'Error %s' % e    
-    sys.exit(1)	
+	print 'Error %s' % e    
+	sys.exit(1)	
 	
 
 
