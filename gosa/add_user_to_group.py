@@ -39,12 +39,14 @@ try:
         
 	dn, groupAttrs = result[0]
 
-	acls = groupAttrs['acl']
 	encontrado = False
-	for acl in acls:
-		if acl.find(mail) != -1:
-			encontrado = True
-			break
+	acls = []
+	if 'acl' in groupAttrs:
+	  acls = groupAttrs['acl']
+	  for acl in acls:
+		  if acl.find(mail) != -1:
+			  encontrado = True
+			  break
 		
 	if not encontrado:
 		acls.append(mail + " lrswipcda")
@@ -52,11 +54,13 @@ try:
 
 
 	encontrado = False
-	members = groupAttrs['memberUid']
-	for member in members:
-		if member.find(attrs['uid'][0]) != -1:
-			encontrado = True
-			break
+	members = []
+	if 'memberUid' in groupAttrs:
+	  members = groupAttrs['memberUid']
+	  for member in members:
+		  if member.find(attrs['uid'][0]) != -1:
+			  encontrado = True
+			  break
 
 	if not encontrado:
 		for uid in attrs['uid']:
