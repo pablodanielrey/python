@@ -22,10 +22,7 @@ class CreateAccountRequestAction:
 
 
 
-
-    ok = {'ok':}
-    server.sendMessage(server.ok('request created with id : ' + str(uuid.uuid4()))
-
+    server.sendMessage(server.ok('request created with id : ' + str(uuid.uuid4())))
     return True
 
 
