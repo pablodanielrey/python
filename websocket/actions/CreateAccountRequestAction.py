@@ -1,6 +1,30 @@
 
 import json, uuid
 import ActionUtils
+import json
+
+"""
+peticion:
+{
+  "id":"id de la peticion"
+  "action":"createAccountRequest",
+  "session":"id de session obtenido en el login"
+  "dni":""
+  "name":""
+  "lastname":""
+  "mail":""
+  "reason":""
+}
+
+respuesta:  
+{
+  "id":"id de la peticion"
+  O "ok":""
+  O "error":""
+}
+
+"""
+
 
 class CreateAccountRequestAction:
 
@@ -9,20 +33,19 @@ class CreateAccountRequestAction:
     if message['action'] != 'createAccountRequest':
       return False
 
-    fields = ['dni','name','lastname','mail']
-    ef = ActionUtils.checkRequiredFields(message,fields)
-    if len(ef) > 0:
-      server.sendMessage(server.error('Required fields ' + str(ef) + ' not found'))
-      return True
+    """ chequeo que exista la sesion, etc """
+    session = message['session']
 
+    pid = message['id']
     dni = message['dni']
     name = message['name']
     lastname = message['lastname']
     mail = message['mail']
+    reason = message["reason"]
+    
+    response = {'id':pid, 'ok':'petición creada correctamente'}
+    server.sendMessage(json.dumps(response))
 
-
-
-    server.sendMessage(server.ok('request created with id : ' + str(uuid.uuid4())))
     return True
 
 
