@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
   ''' codigo de inicialización del servidor '''
 
-  server = SimpleWebSocketServer('',8000,GenericServer,[login,createRequest,listRequests])
+  server = SimpleWebSocketServer('',8001,GenericServer,[login,createRequest,listRequests])
  
   def close_sig_handler(signal,frame):
     server.close()
