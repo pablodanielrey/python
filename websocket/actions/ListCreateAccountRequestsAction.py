@@ -7,6 +7,7 @@ peticion:
 {
 "id":"",
 "action":"listCreateAccountRequests"
+"session":"sesion de usuario"
 }
 
 respuesta:
