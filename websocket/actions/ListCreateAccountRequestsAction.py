@@ -2,6 +2,29 @@
 import json, uuid
 import ActionUtils
 
+"""
+peticion:
+{
+"id":"",
+"action":"listCreateAccountRequests"
+}
+
+respuesta:
+{
+"id":"id de la petición",
+"list":[
+    {
+     "id":"",
+     "dni":"",
+     "name":"",
+     "lastname":"",
+     "mail":""
+    }
+  ]
+}
+
+"""
+
 class ListCreateAccountRequestsAction:
 
   def handleAction(self, server, message):
