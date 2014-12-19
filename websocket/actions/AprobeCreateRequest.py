@@ -22,7 +22,7 @@ respuesta:
 """
 
 
-class AprobeCreateRequestAction:
+class AprobeCreateRequest:
 
   def handleAction(self, server, message):
 
