@@ -1,4 +1,4 @@
-
+# -*- coding: utf-8 -*-
 import json, uuid
 import ActionUtils
 
@@ -41,7 +41,8 @@ class ListCreateAccountRequestsAction:
     ''' a modo de ejemplo retorno algunas dummy '''
 
 
-    msg = {'session':session,
+    msg = {'id':message['id'],
+	   'session':session,
 	   'ok':'',
            'list':[
               {'id':str(uuid.uuid4()),'dni':'1','name':'nombre1','lastname':'apellido1','mail':'m@gmail.com'},
