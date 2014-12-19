@@ -35,12 +35,14 @@ class ListCreateAccountRequestsAction:
     if message['action'] != 'listCreateAccountRequests':
       return False
 
-
+    """ chequeo que exista la sesion, etc """
+    session = message['session']
 
     ''' a modo de ejemplo retorno algunas dummy '''
 
 
-    msg = {'ok':'',
+    msg = {'session':session,
+	   'ok':'',
            'list':[
               {'id':str(uuid.uuid4()),'dni':'1','name':'nombre1','lastname':'apellido1','mail':'m@gmail.com'},
               {'id':str(uuid.uuid4()),'dni':'2','name':'nombre2','lastname':'apellido2','mail':'m2@gmail.com'}
