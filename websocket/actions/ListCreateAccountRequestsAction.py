@@ -21,7 +21,9 @@ respuesta:
      "lastname":"",
      "mail":""
     }
-  ]
+  ],
+ "ok":"",
+ "error":""
 }
 
 """
