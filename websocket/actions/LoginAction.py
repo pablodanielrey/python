@@ -34,7 +34,11 @@ class LoginAction:
     print("login with : %s and pass : %s", (user, passw))
 
     ok = {'id':message['id'], 'ok':'', 'session':'32r0932jewf2f2fjefc23r3ufcweich328f2hf2ifc'}
-    server.sendMessage(json.dumps(ok))
+    response = json.dumps(ok)
+
+    print("response : " + response);
+
+    server.sendMessage(response)
 
     return True
 
