@@ -7,16 +7,9 @@ from model import Requests
 peticion:
 {
   "id":"id de la peticion"
-  "action":"createAccountRequest",
-  "session":"id de session obtenido en el login"
-
-  "request":{
-    "dni":""
-    "name":""
-    "lastname":""
-    "email":""
-    "reason":""
-  }
+  "action":"aprobeRequest",
+  "session":"id de session obtenido en el login",
+  "reqId":"id de la peticion"
 }
 
 respuesta:
@@ -29,28 +22,26 @@ respuesta:
 """
 
 
-class CreateAccountRequestAction:
+class AprobeRequest:
 
   req = Requests.Requests()
 
   def handleAction(self, server, message):
 
-    if message['action'] != 'createAccountRequest':
+    if message['action'] != 'aprobeRequest':
       return False
 
     """ chequeo que exista la sesion, etc """
     session = message['session']
 
     pid = message['id']
-
-    data = message['request']
-    data['id'] = str(uuid.uuid4());
+    reqId = message['reqId']
 
     try:
       con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
-      self.req.createRequest(con,data)
+      self.req.removeRequest(con,reqId)
 
-      response = {'id':pid, 'ok':'petición creada correctamente'}
+      response = {'id':pid, 'ok':'request eliminado correctamente'}
       server.sendMessage(json.dumps(response))
 
     except psycopg2.DatabaseError, e:

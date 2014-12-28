@@ -5,7 +5,7 @@ from actions.LoginAction import LoginAction
 from actions.LogoutAction import LogoutAction
 from actions.CreateAccountRequestAction import CreateAccountRequestAction
 from actions.ListAccountRequestsAction import ListAccountRequestsAction
-from actions.AprobeCreateRequest import AprobeCreateRequest
+from actions.AprobeRequest import AprobeRequest
 from actions.SendEventToClientsAction import SendEventToClientsAction
 import signal, sys
 
@@ -17,7 +17,7 @@ if __name__ == '__main__':
   logout = LogoutAction()
   createRequest = CreateAccountRequestAction()
   listRequests = ListAccountRequestsAction()
-  aprobeRequests = AprobeCreateRequest()
+  aprobeRequests = AprobeRequest()
   sendEventToClients = SendEventToClientsAction()
 
 

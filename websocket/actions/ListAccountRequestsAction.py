@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import json, uuid
 import psycopg2
+from model import Requests
 
 """
 peticion:
@@ -30,7 +31,7 @@ respuesta:
 
 class ListAccountRequestsAction:
 
-  query = 'select id,dni,name,lastname,email,reason from account_requests';
+  req = Requests.Requests()
 
   def handleAction(self, server, message):
 
@@ -42,22 +43,7 @@ class ListAccountRequestsAction:
 
     try:
       con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
-      cur = con.cursor()
-      cur.execute(self.query);
-      data = cur.fetchall();
-
-      ''' transformo a diccionario la respuesta '''
-      rdata = []
-      for d in data:
-          rdata.append({
-            'id':d[0],
-            'dni':d[1],
-            'name':d[2],
-            'lastname':d[3],
-            'email':d[4],
-            'reason':d[5]
-           })
-
+      rdata = self.req.listRequests(con)
       response = {'id':message['id'], 'ok':'', 'requests': rdata}
       print json.dumps(response);
       server.sendMessage(json.dumps(response))
