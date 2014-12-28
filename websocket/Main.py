@@ -4,7 +4,7 @@ from GenericServer import GenericServer
 from actions.LoginAction import LoginAction
 from actions.LogoutAction import LogoutAction
 from actions.CreateAccountRequestAction import CreateAccountRequestAction
-from actions.ListCreateAccountRequestsAction import ListCreateAccountRequestsAction
+from actions.ListAccountRequestsAction import ListAccountRequestsAction
 from actions.AprobeCreateRequest import AprobeCreateRequest
 from actions.SendEventToClientsAction import SendEventToClientsAction
 import signal, sys
@@ -16,16 +16,16 @@ if __name__ == '__main__':
   login = LoginAction()
   logout = LogoutAction()
   createRequest = CreateAccountRequestAction()
-  listRequests = ListCreateAccountRequestsAction()
+  listRequests = ListAccountRequestsAction()
   aprobeRequests = AprobeCreateRequest()
-  SendEventToClients = SendEventToClientsAction()
+  sendEventToClients = SendEventToClientsAction()
 
 
 
   ''' codigo de inicialización del servidor '''
 
-  server = SimpleWebSocketServer('',8001,GenericServer,[login,logout,createRequest,listRequests,aprobeRequests,SendEventToClients])
- 
+  server = SimpleWebSocketServer('',8001,GenericServer,[login,logout,createRequest,listRequests,aprobeRequests,sendEventToClients])
+
   def close_sig_handler(signal,frame):
     server.close()
     sys.exit()

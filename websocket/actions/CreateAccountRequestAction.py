@@ -15,7 +15,7 @@ peticion:
     "dni":""
     "name":""
     "lastname":""
-    "mail":""
+    "email":""
     "reason":""
   }
 }
@@ -32,7 +32,7 @@ respuesta:
 
 class CreateAccountRequestAction:
 
-  createRequest = 'insert into account_requests (dni,name,lastname,email,reason) values (%s,%s,%s,%s,%s)'
+  createRequest = 'insert into account_requests (id,dni,name,lastname,email,reason) values (%s,%s,%s,%s,%s,%s)'
 
   def handleAction(self, server, message):
 
@@ -44,6 +44,7 @@ class CreateAccountRequestAction:
 
     pid = message['id']
 
+    uid = str(uuid.uuid4())
     dni = message['request']['dni']
     name = message['request']['name']
     lastname = message['request']['lastname']
@@ -53,7 +54,7 @@ class CreateAccountRequestAction:
     try:
       con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
       cur = con.cursor()
-      cur.execute(self.createRequest,(dni,name,lastname,mail,reason))
+      cur.execute(self.createRequest,(uid,dni,name,lastname,mail,reason))
       con.commit()
 
       response = {'id':pid, 'ok':'petición creada correctamente'}
