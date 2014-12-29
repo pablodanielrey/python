@@ -33,7 +33,6 @@ class Requests:
             rreq = (req['id'],req['dni'],req['name'],req['lastname'],req['email'],req['reason'])
             cur = con.cursor()
             cur.execute('insert into account_requests (id,dni,name,lastname,email,reason) values (%s,%s,%s,%s,%s,%s)', rreq)
-            con.commit()
 
         except psycopg2.DatabaseError, e:
             if con:
@@ -45,7 +44,6 @@ class Requests:
         try:
             cur = con.cursor()
             cur.execute('delete from account_requests where id = %s', (rid,))
-            con.commit()
 
         except psycopg2.DatabaseError, e:
             if con:

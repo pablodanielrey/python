@@ -49,6 +49,7 @@ class CreateAccountRequestAction:
     try:
       con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
       self.req.createRequest(con,data)
+      con.commit()
 
       response = {'id':pid, 'ok':'petición creada correctamente'}
       server.sendMessage(json.dumps(response))

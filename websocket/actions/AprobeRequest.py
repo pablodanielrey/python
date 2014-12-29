@@ -2,6 +2,8 @@
 import json, uuid
 import psycopg2
 from model import Requests
+from model import Users
+from model import ObjectView
 
 """
 peticion:
@@ -25,6 +27,7 @@ respuesta:
 class AprobeRequest:
 
   req = Requests.Requests()
+  users = Users.Users()
 
   def handleAction(self, server, message):
 
@@ -39,9 +42,17 @@ class AprobeRequest:
 
     try:
       con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
-      self.req.removeRequest(con,reqId)
+      reqs = self.req.listRequests(con)
+      for r in reqs:
+          if r['id'] == reqId:
+              r2 = ObjectView.ObjectView(r)
+              user = { 'dni':r2.dni, 'name':r2.name, 'lastname':r2.lastname }
+              self.users.createUser(con,user)
+              self.req.removeRequest(con,reqId)
+              con.commit()
 
-      response = {'id':pid, 'ok':'request eliminado correctamente'}
+
+      response = {'id':pid, 'ok':'usuario creado correctamente'}
       server.sendMessage(json.dumps(response))
 
     except psycopg2.DatabaseError, e:
@@ -49,7 +60,8 @@ class AprobeRequest:
         response = {'id':pid, 'error':''}
         server.sendMessage(json.dumps(response))
 
-        print 'peticion error'
+        if con:
+            con.rollback()
 
     finally:
         if con:
