@@ -16,3 +16,25 @@ class Users:
             if con:
                 con.rollback()
             print e
+
+    def listUsers(self, con):
+        try:
+            cur = con.cursor()
+            cur.execute('select id,dni,name,lastname from users');
+            data = cur.fetchall();
+
+            ''' transformo a diccionario la respuesta '''
+            rdata = []
+            for d in data:
+                rdata.append({
+                    'id':d[0],
+                    'dni':d[1],
+                    'name':d[2],
+                    'lastname':d[3]
+                })
+
+            return rdata
+
+        except psycopg2.DatabaseError, e:
+            print e
+            return None
