@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-import json, uuid, psycopg2
+import json, uuid, psycopg2, inject
 from model.requests import Requests
 from model.users import Users
 from model.objectView import ObjectView
+from model.events import Events
 
 
 """
@@ -39,7 +40,8 @@ respuesta:
 
 class CreateAccountRequest:
 
-  req = Requests()
+  req = inject.attr(Requests)
+  events = inject.attr(Events)
 
   def handleAction(self, server, message):
 
@@ -61,6 +63,13 @@ class CreateAccountRequest:
 
       response = {'id':pid, 'ok':'petición creada correctamente'}
       server.sendMessage(json.dumps(response))
+
+      event = {
+        'type':'NewAccountRequestEvent',
+        'data':data['id']
+      }
+      self.events.broadcast(server,event)
+
 
     except psycopg2.DatabaseError, e:
 
