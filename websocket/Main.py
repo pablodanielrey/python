@@ -1,37 +1,40 @@
-﻿
+# -*- coding: utf-8 -*-
+import signal, sys
+import inject
+
 from Ws.SimpleWebSocketServer import SimpleWebSocketServer
 from GenericServer import GenericServer
-from actions.LoginAction import LoginAction
-from actions.LogoutAction import LogoutAction
-from actions.CreateAccountRequestAction import CreateAccountRequestAction
-from actions.ListAccountRequestsAction import ListAccountRequestsAction
-from actions.AprobeRequest import AprobeRequest
-from actions.SendEventToClientsAction import SendEventToClientsAction
-from actions.ListUsers import ListUsers
-import signal, sys
+
+from actions.chat import SendEventToClients
+from actions.login import Login, Logout
+from actions.requests import CreateAccountRequest, ListAccountRequests, AprobeAccountRequest
+from actions.users import UpdateUser, FindUser, ListUsers
+
+from model.session import Session
+
+
+def config_injector(binder):
+    binder.bind(Session,Session())
+
 
 if __name__ == '__main__':
 
+
+  inject.configure(config_injector)
+
   ''' aca se definen las acciones a ser manejadas por el server '''
 
-  login = LoginAction()
-  logout = LogoutAction()
-  createRequest = CreateAccountRequestAction()
-  listRequests = ListAccountRequestsAction()
-  aprobeRequests = AprobeRequest()
-  sendEventToClients = SendEventToClientsAction()
-  listUsers = ListUsers()
-
+  actions = [
+    SendEventToClients(),
+    Login(), Logout(),
+    CreateAccountRequest(), ListAccountRequests(), AprobeAccountRequest(),
+    ListUsers(), UpdateUser(), FindUser()
+  ]
 
 
   ''' codigo de inicialización del servidor '''
 
-  server = SimpleWebSocketServer('',8001,GenericServer,[
-                        login,logout,
-                        createRequest,listRequests,aprobeRequests,
-                        sendEventToClients,
-                        listUsers
-                    ])
+  server = SimpleWebSocketServer('192.168.0.100',8001,GenericServer,actions)
 
   def close_sig_handler(signal,frame):
     server.close()

@@ -1,7 +1,15 @@
 # -*- coding: utf-8 -*-
 import json
 
-""" 
+"""
+    Modulo que contiene las clases de acceso al chat.
+"""
+
+
+
+
+
+"""
 peticion :
 
 {
@@ -19,13 +27,13 @@ respuesta :
 }
 
 """
-class SendEventToClientsAction:
+class SendEventToClients:
 
   def handleAction(self, server, message):
 
     if message['action'] != 'sendEventToClients':
       return False
-         
+
     etype = message['type']
     data = message['data']
 
@@ -45,8 +53,3 @@ class SendEventToClientsAction:
     server.sendMessage(response)
 
     return True
-
-
-
-
-
