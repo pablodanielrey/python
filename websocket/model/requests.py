@@ -8,6 +8,8 @@ class Requests:
             cur = con.cursor()
             cur.execute('select id,dni,name,lastname,email,reason from account_requests');
             data = cur.fetchall();
+            if data == None:
+                return []
 
             ''' transformo a diccionario la respuesta '''
             rdata = []
