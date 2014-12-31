@@ -29,8 +29,9 @@ respuesta :
 {
   "id":"id de la peticion"
   "session":"id de sesion a usar para la ejecución de futuras funciones",
- O "ok":""
- O "error":"mensaje de error"
+  "user_id":'id del usuario logueado'
+  "ok":""
+  "error":"mensaje de error"
 }
 
 """
@@ -60,8 +61,7 @@ class Login:
         return True
 
       sid = self.session.create({'id':rdata['user_id']})
-      response = {'id':message['id'], 'ok':'', 'session':sid}
-      print json.dumps(response);
+      response = {'id':message['id'], 'ok':'', 'session':sid, 'user_id':rdata['user_id']}
       server.sendMessage(json.dumps(response))
       return True
 
