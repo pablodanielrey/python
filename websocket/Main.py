@@ -7,7 +7,7 @@ from GenericServer import GenericServer
 
 from actions.chat import SendEventToClients
 from actions.login import Login, Logout
-from actions.requests import CreateAccountRequest, ListAccountRequests, AprobeAccountRequest
+from actions.requests import CreateAccountRequest, ListAccountRequests, ApproveAccountRequest
 from actions.users import UpdateUser, FindUser, ListUsers
 
 from model.session import Session
@@ -27,7 +27,7 @@ if __name__ == '__main__':
   actions = [
     SendEventToClients(),
     Login(), Logout(),
-    CreateAccountRequest(), ListAccountRequests(), AprobeAccountRequest(),
+    CreateAccountRequest(), ListAccountRequests(), ApproveAccountRequest(),
     ListUsers(), UpdateUser(), FindUser()
   ]
 

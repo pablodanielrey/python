@@ -166,14 +166,14 @@ respuesta:
 
 """
 
-class AprobeAccountRequest:
+class ApproveAccountRequest:
 
   req = Requests()
   users = Users()
 
   def handleAction(self, server, message):
 
-    if message['action'] != 'aprobeAccountRequest':
+    if message['action'] != 'approveAccountRequest':
       return False
 
     """ chequeo que exista la sesion, etc """
@@ -197,6 +197,14 @@ class AprobeAccountRequest:
       response = {'id':pid, 'ok':'usuario creado correctamente'}
       server.sendMessage(json.dumps(response))
 
+      event = {
+        'type':'AccountRequestApprovedEvent',
+        'data':reqId
+      }
+      self.events.broadcast(server,event)
+
+      return True
+
     except psycopg2.DatabaseError, e:
 
         response = {'id':pid, 'error':''}
@@ -208,5 +216,3 @@ class AprobeAccountRequest:
     finally:
         if con:
             con.close()
-
-    return True
