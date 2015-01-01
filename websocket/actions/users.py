@@ -188,6 +188,12 @@ class ConfirmMail:
           response = {'id':message['id'], 'ok':'email de confirmación enviado'}
           server.sendMessage(json.dumps(response))
 
+          event = {
+            'type':'UserUpdatedEvent',
+            'data':mail['user_id']
+          }
+          self.events.broadcast(server,event)
+
           con.commit()
 
           return True
