@@ -16,7 +16,7 @@ from websocketServer import WebsocketServer
 from actions.chat import SendEventToClients
 from actions.login import Login, Logout
 from actions.requests import CreateAccountRequest, ListAccountRequests, ApproveAccountRequest
-from actions.users import UpdateUser, FindUser, ListUsers, ListMails, PersistMail, ConfirmMail
+from actions.users import UpdateUser, FindUser, ListUsers, ListMails, PersistMail, ConfirmMail, RemoveMail
 
 from model.session import Session
 
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     SendEventToClients(),
     Login(), Logout(),
     CreateAccountRequest(), ListAccountRequests(), ApproveAccountRequest(),
-    ListUsers(), UpdateUser(), FindUser(), ListMails(), PersistMail(), ConfirmMail()
+    ListUsers(), UpdateUser(), FindUser(), ListMails(), PersistMail(), ConfirmMail(), RemoveMail()
   ]
 
 
@@ -54,7 +54,7 @@ if __name__ == '__main__':
 
   def close_sig_handler(signal,frame):
     websocketServer.close()
-    httpServer.shutdown()
+    #httpServer.shutdown()
     sys.exit()
 
   signal.signal(signal.SIGINT,close_sig_handler)

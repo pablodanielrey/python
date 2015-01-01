@@ -15,6 +15,80 @@ from model.events import Events
 
 
 
+"""
+peticion:
+{
+    "id":"",
+    "action":"removeMail",
+    "session":"session de usuario",
+    "mail_id":"id del mail a eliminar"
+}
+
+respuesta:
+{
+    "id":"id de la peticion",
+    "ok":"",
+    "error":""
+}
+
+"""
+
+class RemoveMail:
+
+  users = inject.attr(Users)
+  events = inject.attr(Events)
+
+  def handleAction(self, server, message):
+
+    if (message['action'] != 'removeMail'):
+        return False
+
+    """ chequeo que exista la sesion, etc """
+    session = message['session']
+
+    try:
+      con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
+
+      if 'mail_id' not in message:
+          response = {'id':message['id'], 'error':''}
+          server.sendMessage(json.dumps(response))
+          return True
+
+      mail_id = message['mail_id']
+      email = self.users.findMail(con,mail_id)
+      if email == None:
+          response = {'id':message['id'], 'error':'mail inexistente'}
+          server.sendMessage(json.dumps(response))
+          return True
+
+      self.users.deleteMail(con,email['id'])
+      con.commit()
+
+      response = {'id':message['id'], 'ok':''}
+      server.sendMessage(json.dumps(response))
+
+      event = {
+        'type':'UserUpdatedEvent',
+        'data':email['user_id']
+      }
+      self.events.broadcast(server,event)
+
+
+    except psycopg2.DatabaseError, e:
+
+        response = {'id':message['id'], 'error':''}
+        server.sendMessage(json.dumps(response))
+
+    finally:
+        if con:
+            con.close()
+
+    return True
+
+
+
+
+
 
 """
 peticion:
