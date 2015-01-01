@@ -5,6 +5,47 @@ from model.objectView import ObjectView
 
 class Users:
 
+    def createMail(self,con,data):
+        try:
+            mail = ObjectView(data)
+            rreq = (str(uuid.uuid4()),mail.user_id,mail.email,False)
+            cur = con.cursor()
+            cur.execute('insert into user_mails (id,user_id,email,confirmed) values (%s,%s,%s,%s)', rreq)
+
+        except psycopg2.DatabaseError, e:
+            if con:
+                con.rollback()
+            print e
+
+
+    def listMails(self, con, user_id):
+        try:
+            cur = con.cursor()
+            cur.execute('select id, user_id, email, confirmed from user_mails where user_id = %s',(user_id,))
+            data = cur.fetchall()
+            rdata = []
+            for d in data:
+                rdata.append(self.convertMailToDict(d))
+            return rdata
+
+        except psycopg2.DatabaseError, e:
+            print e
+            return None
+
+
+    ''' transformo a diccionario las respuestas de psycopg2'''
+    def convertMailToDict(self,d):
+        rdata = {
+                'id':d[0],
+                'user_id':d[1],
+                'email':d[2],
+                'confirmed':d[3]
+            }
+        return rdata
+
+
+    """-------------------------------"""
+
     def createUser(self,con,data):
         try:
             user = ObjectView(data)
@@ -22,7 +63,7 @@ class Users:
             user = ObjectView(data)
             rreq = (user.dni,user.name,user.lastname, user.id)
             cur = con.cursor()
-            cur.execute('update users set (dni = %s, name = %s, lastname = %s) where id = %s', rreq)
+            cur.execute('update users set dni = %s, name = %s, lastname = %s where id = %s', rreq)
 
         except psycopg2.DatabaseError, e:
             if con:
@@ -36,7 +77,7 @@ class Users:
             cur.execute('select id,dni,name,lastname from users where id = %s', (id,))
             data = cur.fetchone()
             if data != None:
-                return self.convertToDict(data)
+                return self.convertUserToDict(data)
             else:
                 return None
 
@@ -53,7 +94,7 @@ class Users:
             data = cur.fetchall()
             rdata = []
             for d in data:
-                rdata.append(self.convertToDict(d))
+                rdata.append(self.convertUserToDict(d))
             return rdata
 
         except psycopg2.DatabaseError, e:
@@ -62,7 +103,7 @@ class Users:
 
 
     ''' transformo a diccionario las respuestas de psycopg2'''
-    def convertToDict(self,d):
+    def convertUserToDict(self,d):
         rdata = {
                 'id':d[0],
                 'dni':d[1],
