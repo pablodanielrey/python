@@ -50,7 +50,7 @@ if __name__ == '__main__':
   ''' codigo de inicialización del servidor '''
 
   websocketServer = SimpleWebSocketServer('192.168.0.100',8001,WebsocketServer,actions)
-  httpServer = SocketServer.TCPServer(('192.168.0.100',8002), MyHttpServerRequestHandler)
+#  httpServer = SocketServer.TCPServer(('192.168.0.100',8002), MyHttpServerRequestHandler)
 
   def close_sig_handler(signal,frame):
     websocketServer.close()
@@ -60,7 +60,7 @@ if __name__ == '__main__':
   signal.signal(signal.SIGINT,close_sig_handler)
 
   thread.start_new_thread(serveWebsockets,(websocketServer,1))
-  thread.start_new_thread(serveHttp,(httpServer,1))
+#  thread.start_new_thread(serveHttp,(httpServer,1))
 
   while True:
     time.sleep(1000)

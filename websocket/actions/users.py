@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-import json, uuid, psycopg2
+import json, uuid, psycopg2, re
 import inject
+import hashlib
 import smtplib
 from email.mime.text import MIMEText
 
@@ -20,6 +21,7 @@ peticion:
 {
     "id":"",
     "action":"confirmMail",
+    "sub_action":"generate|confirm",
     "session":"session de usuario",
     "mail_id": "id del email a confirmar"
 }
@@ -39,15 +41,17 @@ class ConfirmMail:
   events = inject.attr(Events)
 
 
-  def sendEmail(self, email):
+  def sendEmail(self, url, hash, email):
 
       smtp_host = '163.10.17.115'
-      smtp_user = ''
-      smtp_pass = ''
+      smtp_user = 'campus'
+      smtp_pass = 'supmac'
       From = 'detise@econo.unlp.edu.ar'
       To = email
 
-      msg = MIMEText('prueba de mail desde python')
+      link = re.sub('\#.*$','#/confirmMail',url)
+
+      msg = MIMEText('<html><head></head><body><a href="' + link + hash + '">click aqui para confirmar la cuenta</a></body></html>')
       msg['Subject'] = 'email de confirmación de la cuenta'
       msg['From'] = From
       msg['To'] = To
@@ -62,6 +66,21 @@ class ConfirmMail:
 
 
 
+  def generateConfirmation(self,con,mail,url):
+
+      hash = hashlib.sha1(mail['id'] + mail['user_id']).hexdigest()
+      mail['hash'] = hash
+      self.users.updateMail(con,mail)
+
+      ''' envío el mail '''
+      self.sendEmail(url,hash,mail['email'])
+
+
+  def confirm(self,con,mail):
+      mail['confirmed'] = True
+      self.users.updateMail(con,mail)
+
+
   def handleAction(self, server, message):
 
     if (message['action'] != 'confirmMail'):
@@ -70,26 +89,68 @@ class ConfirmMail:
     """ chequeo que exista la sesion, etc """
     session = message['session']
 
+    if 'sub_action' not in message:
+        response = {'id':message['id'], 'error':'formato de mensaje erroneo'}
+        server.sendMessage(json.dumps(response))
+        return True
+
     try:
       con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
 
-      email = message['mail_id']
-      if email == None:
-          response = {'id':message['id'], 'error':''}
+      if message['sub_action'] == 'generate':
+          email = message['mail_id']
+          if email == None:
+              response = {'id':message['id'], 'error':''}
+              server.sendMessage(json.dumps(response))
+              return True
+
+          mail = self.users.findMail(con,email);
+          if mail == None:
+              response = {'id':message['id'], 'error':'mail inxesistente'}
+              server.sendMessage(json.dumps(response))
+              return True
+
+          self.generateConfirmation(con,mail,message['url'])
+          response = {'id':message['id'], 'ok':'email de confirmación enviado'}
           server.sendMessage(json.dumps(response))
+
+          con.commit()
+
+          return True
+
+      if message['sub_action'] == 'confirm':
+          email = message['hash']
+          if email == None:
+              response = {'id':message['id'], 'error':''}
+              server.sendMessage(json.dumps(response))
+              return True
+
+          mail = self.users.findMailByHash(con,email);
+          if mail == None:
+              response = {'id':message['id'], 'error':'mail inxesistente'}
+              server.sendMessage(json.dumps(response))
+              return True
+
+          self.confirm(con,mail)
+
+          response = {'id':message['id'], 'ok':''}
+          server.sendMessage(json.dumps(response))
+
+          event = {
+            'type':'UserUpdatedEvent',
+            'data':mail['user_id']
+          }
+          self.events.broadcast(server,event)
+
+          con.commit()
+
           return True
 
 
-      mail = self.users.findMail(con,email);
-      if mail == None:
-          response = {'id':message['id'], 'error':'mail inxesistente'}
-          server.sendMessage(json.dumps(response))
-          return True
 
-      self.sendEmail(mail['email'])
-
-      response = {'id':message['id'], 'ok':'email de confirmación enviado'}
+      response = {'id':message['id'], 'error':'acción no definida'}
       server.sendMessage(json.dumps(response))
+      return True
 
     except smtplib.SMTPRecipientsRefused, e:
 
@@ -112,10 +173,6 @@ class ConfirmMail:
     finally:
         if con:
             con.close()
-
-    return True
-
-
 
 
 

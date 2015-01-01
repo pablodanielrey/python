@@ -5,23 +5,38 @@ from model.objectView import ObjectView
 
 class Users:
 
+
     def createMail(self,con,data):
         try:
             mail = ObjectView(data)
-            rreq = (str(uuid.uuid4()),mail.user_id,mail.email,False)
+            rreq = (str(uuid.uuid4()),mail.user_id,mail.email,False,'')
             cur = con.cursor()
-            cur.execute('insert into user_mails (id,user_id,email,confirmed) values (%s,%s,%s,%s)', rreq)
+            cur.execute('insert into user_mails (id,user_id,email,confirmed,hash) values (%s,%s,%s,%s,%s)', rreq)
 
         except psycopg2.DatabaseError, e:
             if con:
                 con.rollback()
             print e
 
+    def findMailByHash(self,con,hash):
+        try:
+            cur = con.cursor()
+            cur.execute('select id,user_id,email,confirmed,hash from user_mails where hash = %s', (hash,))
+            data = cur.fetchone()
+            if data != None:
+                return self.convertMailToDict(data)
+            else:
+                return None
+
+        except psycopg2.DatabaseError, e:
+            if con:
+                con.rollback()
+            print e
 
     def findMail(self,con,id):
         try:
             cur = con.cursor()
-            cur.execute('select id,user_id,email,confirmed from user_mails where id = %s', (id,))
+            cur.execute('select id,user_id,email,confirmed,hash from user_mails where id = %s', (id,))
             data = cur.fetchone()
             if data != None:
                 return self.convertMailToDict(data)
@@ -38,7 +53,7 @@ class Users:
     def listMails(self, con, user_id):
         try:
             cur = con.cursor()
-            cur.execute('select id, user_id, email, confirmed from user_mails where user_id = %s',(user_id,))
+            cur.execute('select id, user_id, email, confirmed, hash from user_mails where user_id = %s',(user_id,))
             data = cur.fetchall()
             rdata = []
             for d in data:
@@ -61,13 +76,14 @@ class Users:
             print e
 
 
-
     def updateMail(self,con,data):
         try:
+            if 'hash' not in data:
+                data['hash'] = ''
             mail = ObjectView(data)
-            rreq = (mail.email, mail.confirmed, mail.id)
+            rreq = (mail.email, mail.confirmed, mail.hash, mail.id)
             cur = con.cursor()
-            cur.execute('update user_mails set email = %s, confirmed = %s where id = %s', rreq)
+            cur.execute('update user_mails set email = %s, confirmed = %s, hash = %s where id = %s', rreq)
 
         except psycopg2.DatabaseError, e:
             if con:
@@ -81,7 +97,8 @@ class Users:
                 'id':d[0],
                 'user_id':d[1],
                 'email':d[2],
-                'confirmed':d[3]
+                'confirmed':d[3],
+                'hash':d[4]
             }
         return rdata
 
