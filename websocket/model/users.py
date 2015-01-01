@@ -18,6 +18,23 @@ class Users:
             print e
 
 
+    def findMail(self,con,id):
+        try:
+            cur = con.cursor()
+            cur.execute('select id,user_id,email,confirmed from user_mails where id = %s', (id,))
+            data = cur.fetchone()
+            if data != None:
+                return self.convertMailToDict(data)
+            else:
+                return None
+
+        except psycopg2.DatabaseError, e:
+            if con:
+                con.rollback()
+            print e
+
+
+
     def listMails(self, con, user_id):
         try:
             cur = con.cursor()
@@ -31,6 +48,31 @@ class Users:
         except psycopg2.DatabaseError, e:
             print e
             return None
+
+
+    def deleteMail(self,con,id):
+        try:
+            cur = con.cursor()
+            cur.execute('delete from user_mails where id = %s', (id,))
+
+        except psycopg2.DatabaseError, e:
+            if con:
+                con.rollback()
+            print e
+
+
+
+    def updateMail(self,con,data):
+        try:
+            mail = ObjectView(data)
+            rreq = (mail.email, mail.confirmed, mail.id)
+            cur = con.cursor()
+            cur.execute('update user_mails set email = %s, confirmed = %s where id = %s', rreq)
+
+        except psycopg2.DatabaseError, e:
+            if con:
+                con.rollback()
+            print e
 
 
     ''' transformo a diccionario las respuestas de psycopg2'''

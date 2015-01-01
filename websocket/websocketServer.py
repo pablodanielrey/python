@@ -2,14 +2,14 @@
 from Ws.SimpleWebSocketServer import WebSocket, SimpleWebSocketServer
 import json
 
-class GenericServer(WebSocket):
+class WebsocketServer(WebSocket):
 
   def setActions(self,actions):
     self.actions = actions
 
   def ok(self, msg):
     return json.dumps({'ok':msg})
-    
+
   def error(self, msg):
     return json.dumps({'error':msg})
 
@@ -21,7 +21,7 @@ class GenericServer(WebSocket):
 
       print("Loading %s", self.data)
       message = json.loads(str(self.data))
-      
+
       if 'action' not in message:
         self.sendMessage(self.error('action not found in message'))
         return
@@ -32,9 +32,9 @@ class GenericServer(WebSocket):
         if managed:
           break
 
-      if not managed:       
+      if not managed:
         self.sendMessage(self.error('action not implemented'))
-      
+
     except:
       self.sendMessage(self.error('exception parsing message'))
 
@@ -44,5 +44,3 @@ class GenericServer(WebSocket):
 
   def handleClose(self):
     print("closed : ",self.address)
-
-

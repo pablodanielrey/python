@@ -1,12 +1,123 @@
 # -*- coding: utf-8 -*-
 import json, uuid, psycopg2
 import inject
+import smtplib
+from email.mime.text import MIMEText
+
 from model.users import Users
 from model.events import Events
 
 """
     Modulo de acceso al manejo de usuarios
 """
+
+
+
+
+
+"""
+peticion:
+{
+    "id":"",
+    "action":"confirmMail",
+    "session":"session de usuario",
+    "mail_id": "id del email a confirmar"
+}
+
+respuesta:
+{
+    "id":"id de la peticion",
+    "ok":"",
+    "error":""
+}
+
+"""
+
+class ConfirmMail:
+
+  users = inject.attr(Users)
+  events = inject.attr(Events)
+
+
+  def sendEmail(self, email):
+
+      smtp_host = '163.10.17.115'
+      smtp_user = ''
+      smtp_pass = ''
+      From = 'detise@econo.unlp.edu.ar'
+      To = email
+
+      msg = MIMEText('prueba de mail desde python')
+      msg['Subject'] = 'email de confirmación de la cuenta'
+      msg['From'] = From
+      msg['To'] = To
+
+      s = smtplib.SMTP(smtp_host)
+      s.login(smtp_user,smtp_pass)
+      s.sendmail(From, [To], msg.as_string())
+      s.quit()
+
+      return True
+
+
+
+
+  def handleAction(self, server, message):
+
+    if (message['action'] != 'confirmMail'):
+        return False
+
+    """ chequeo que exista la sesion, etc """
+    session = message['session']
+
+    try:
+      con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
+
+      email = message['mail_id']
+      if email == None:
+          response = {'id':message['id'], 'error':''}
+          server.sendMessage(json.dumps(response))
+          return True
+
+
+      mail = self.users.findMail(con,email);
+      if mail == None:
+          response = {'id':message['id'], 'error':'mail inxesistente'}
+          server.sendMessage(json.dumps(response))
+          return True
+
+      self.sendEmail(mail['email'])
+
+      response = {'id':message['id'], 'ok':'email de confirmación enviado'}
+      server.sendMessage(json.dumps(response))
+
+    except smtplib.SMTPRecipientsRefused, e:
+
+        err = json.dumps(e.recipients)
+        response = {'id':message['id'], 'error':err}
+        print response
+        server.sendMessage(json.dumps(response))
+
+    except psycopg2.DatabaseError, e:
+
+        response = {'id':message['id'], 'error':''}
+        server.sendMessage(json.dumps(response))
+
+    except:
+
+        response = {'id':message['id'], 'error':''}
+        server.sendMessage(json.dumps(response))
+
+
+    finally:
+        if con:
+            con.close()
+
+    return True
+
+
+
+
 
 """
 peticion:
@@ -252,7 +363,7 @@ respuesta:
 
 class FindUser:
 
-  req = Users()
+  req = inject.attr(Users)
 
 
   def handleAction(self, server, message):
@@ -318,7 +429,7 @@ respuesta:
 
 class ListUsers:
 
-  req = Users()
+  req = inject.attr(Users)
 
   def handleAction(self, server, message):
 
