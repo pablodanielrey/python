@@ -4,6 +4,7 @@ from model.requests import Requests
 from model.users import Users
 from model.objectView import ObjectView
 from model.events import Events
+from model.profiles import Profiles
 
 
 """
@@ -42,6 +43,7 @@ class CreateAccountRequest:
 
   req = inject.attr(Requests)
   events = inject.attr(Events)
+  profiles = inject.attr(Profiles)
 
   def handleAction(self, server, message):
 
@@ -49,7 +51,9 @@ class CreateAccountRequest:
       return False
 
     """ chequeo que exista la sesion, etc """
-    session = message['session']
+    sid = message['session']
+    self.profiles.checkAccess(sid,['ADMIN','USER'])
+
 
     pid = message['id']
 
@@ -124,7 +128,9 @@ class ListAccountRequests:
       return False
 
     """ chequeo que exista la sesion, etc """
-    session = message['session']
+    sid = message['session']
+    self.profiles.checkAccess(sid,['ADMIN'])
+
 
     try:
       con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
@@ -177,7 +183,9 @@ class ApproveAccountRequest:
       return False
 
     """ chequeo que exista la sesion, etc """
-    session = message['session']
+    sid = message['session']
+    self.profiles.checkAccess(sid,['ADMIN','USER'])
+
 
     pid = message['id']
     reqId = message['reqId']

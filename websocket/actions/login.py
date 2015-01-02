@@ -2,8 +2,9 @@
 import json
 import psycopg2
 import inject
+from model.config import Config
 from model.userPassword import UserPassword
-from model.session import Session
+from model.session import Session, SessionNotFound
 from wexceptions import MalformedMessage
 
 
@@ -39,6 +40,7 @@ class Login:
 
   userPassword = inject.attr(UserPassword)
   session = inject.attr(Session)
+  config = inject.attr(Config)
 
   def handleAction(self, server, message):
 
@@ -60,10 +62,13 @@ class Login:
         server.sendMessage(json.dumps(response))
         return True
 
-      sid = self.session.create({'id':rdata['user_id']})
+      sess = {
+        self.config.USER_ID:rdata['user_id']
+      }
+      sid = self.session.create(sess)
+
       response = {'id':message['id'], 'ok':'', 'session':sid, 'user_id':rdata['user_id']}
       server.sendMessage(json.dumps(response))
-
 
       ''' para debug '''
       print str(self.session)
@@ -103,6 +108,7 @@ class Logout:
 
   session = inject.attr(Session)
 
+
   def handleAction(self, server, message):
 
     if message['action'] != 'logout':
@@ -111,7 +117,10 @@ class Logout:
     if 'session' not in message:
         raise MalformedMessage()
 
-    self.session.destroy(message['session'])
+    try:
+        self.session.destroy(message['session'])
+    except SessionNotFound as e:
+        pass
 
     ok = {'id':message['id'], 'ok':''}
     response = json.dumps(ok)

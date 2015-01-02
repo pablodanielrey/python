@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import uuid
 import time
+import inject
 
 """
 datos de la entidad:
@@ -47,10 +48,14 @@ class Session:
                 return s
         raise SessionNotFound()
 
+
+    def checkTime(self,s,t):
+        return (s['expire'] <= t)
+
     def removeExpired(self):
         expire = time.time()
         for s in self.sessions:
-            if s['expire'] <= expire:
+            if self.checkTime(s,expire):
                 print 'Expirando session : ' + str(s)
                 self.sessions.remove(s)
 
@@ -61,7 +66,11 @@ class Session:
         id = str(uuid.uuid4());
         actual = time.time()
         expire = actual + self.expire
-        self.sessions.append({'id':id,'data':data,'expire':expire});
+        self.sessions.append({
+            'id':id,
+            'data':data,
+            'expire':expire
+        });
         return id
 
     def destroy(self, id):
@@ -72,7 +81,7 @@ class Session:
     def getSession(self,id):
         s = self.findSession(id)
         expire = time.time()
-        if (s.expire >= expire):
+        if self.checkTime(s,expire):
             raise SessionExpired()
         self.removeExpired()
-        return s
+        return s['data']

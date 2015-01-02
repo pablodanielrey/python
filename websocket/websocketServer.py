@@ -2,6 +2,7 @@
 from Ws.SimpleWebSocketServer import WebSocket, SimpleWebSocketServer
 import json
 from wexceptions import MalformedMessage
+from model.profiles import AccessDenied
 
 
 
@@ -59,6 +60,12 @@ class WebsocketServer(WebSocket):
             managed = action.handleAction(self,message)
             if managed:
               break
+
+      except AccessDenied as e:
+          print e.__class__.__name__ + ' ' + str(e)
+          self.sendError(message,e)
+          managed = True
+
       except Exception as e:
           print e.__class__.__name__ + ' ' + str(e)
           self.sendError(message,e)
