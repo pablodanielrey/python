@@ -32,3 +32,9 @@ class Profiles:
                 return True
 
         raise AccessDenied()
+
+
+    def getLocalUserId(self,sid):
+        s = self.session.getSession(sid)
+        user_id = s[self.config.USER_ID]
+        return user_id

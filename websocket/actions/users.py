@@ -7,6 +7,8 @@ from email.mime.text import MIMEText
 
 from model.users import Users
 from model.events import Events
+from model.profiles import Profiles
+from wexceptions import MalformedMessage
 
 """
     Modulo de acceso al manejo de usuarios
@@ -37,14 +39,18 @@ class RemoveMail:
 
   users = inject.attr(Users)
   events = inject.attr(Events)
+  profiles = inject.attr(Profiles)
 
   def handleAction(self, server, message):
 
     if (message['action'] != 'removeMail'):
         return False
 
+
     """ chequeo que exista la sesion, etc """
-    session = message['session']
+    sid = message['session']
+    self.profiles.checkAccess(sid,['ADMIN','USER'])
+
 
     try:
       con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
@@ -60,6 +66,12 @@ class RemoveMail:
           response = {'id':message['id'], 'error':'mail inexistente'}
           server.sendMessage(json.dumps(response))
           return True
+
+      ''' chequeo que sea admin para cambiar el mail de otro '''
+      local_user_id = self.profiles.getLocalUserId(sid)
+      if local_user_id != email['user_id']:
+          self.profiles.checkAccess(sid,'ADMIN')
+
 
       self.users.deleteMail(con,email['id'])
       con.commit()
@@ -113,6 +125,7 @@ class ConfirmMail:
 
   users = inject.attr(Users)
   events = inject.attr(Events)
+  profiles = inject.attr(Profiles)
 
 
   def sendEmail(self, url, hash, email):
@@ -160,17 +173,16 @@ class ConfirmMail:
     if (message['action'] != 'confirmMail'):
         return False
 
-    """ chequeo que exista la sesion, etc """
-    session = message['session']
-
     if 'sub_action' not in message:
-        response = {'id':message['id'], 'error':'formato de mensaje erroneo'}
-        server.sendMessage(json.dumps(response))
-        return True
+        raise MalformedMessage()
 
+
+    """ chequeo que exista la sesion, etc """
+    sid = message['session']
+    self.profiles.checkAccess(sid,['ADMIN','USER'])
+
+    con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
     try:
-      con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
-
       if message['sub_action'] == 'generate':
           email = message['mail_id']
           if email == None:
@@ -183,6 +195,13 @@ class ConfirmMail:
               response = {'id':message['id'], 'error':'mail inxesistente'}
               server.sendMessage(json.dumps(response))
               return True
+
+
+          ''' chequeo que sea admin para enviar confirmaciones a mails de otras personas '''
+          local_user_id = self.profiles.getLocalUserId(sid)
+          if local_user_id != mail['user_id']:
+              self.profiles.checkAccess(sid,'ADMIN')
+
 
           self.generateConfirmation(con,mail,message['url'])
           response = {'id':message['id'], 'ok':'email de confirmación enviado'}
@@ -211,6 +230,13 @@ class ConfirmMail:
               server.sendMessage(json.dumps(response))
               return True
 
+
+          ''' chequeo que sea admin para confirmar mails de otras personas '''
+          local_user_id = self.profiles.getLocalUserId(sid)
+          if local_user_id != mail['user_id']:
+              self.profiles.checkAccess(sid,'ADMIN')
+
+
           self.confirm(con,mail)
 
           response = {'id':message['id'], 'ok':''}
@@ -227,32 +253,14 @@ class ConfirmMail:
           return True
 
 
-
-      response = {'id':message['id'], 'error':'acción no definida'}
-      server.sendMessage(json.dumps(response))
-      return True
-
-    except smtplib.SMTPRecipientsRefused, e:
-
-        err = json.dumps(e.recipients)
-        response = {'id':message['id'], 'error':err}
-        print response
-        server.sendMessage(json.dumps(response))
+      raise MalformedMessage()
 
     except psycopg2.DatabaseError, e:
-
-        response = {'id':message['id'], 'error':''}
-        server.sendMessage(json.dumps(response))
-
-    except:
-
-        response = {'id':message['id'], 'error':''}
-        server.sendMessage(json.dumps(response))
-
+        con.rollback()
+        raise e
 
     finally:
-        if con:
-            con.close()
+        con.close()
 
 
 
@@ -285,6 +293,7 @@ respuesta:
 class ListMails:
 
   users = inject.attr(Users);
+  profiles = inject.attr(Profiles)
 
   def handleAction(self, server, message):
 
@@ -292,25 +301,26 @@ class ListMails:
       return False
 
     """ chequeo que exista la sesion, etc """
-    session = message['session']
+    sid = message['session']
+    self.profiles.checkAccess(sid,['ADMIN','USER'])
 
+    con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
     try:
-      con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
+      ''' chequeo que sea admin para listar los mails de otras personas '''
+      local_user_id = self.profiles.getLocalUserId(sid)
+      if local_user_id != message['user_id']:
+          self.profiles.checkAccess(sid,'ADMIN')
+
       rdata = self.users.listMails(con, message['user_id'])
       response = {'id':message['id'], 'ok':'', 'mails': rdata}
       print json.dumps(response);
       server.sendMessage(json.dumps(response))
-
-    except psycopg2.DatabaseError, e:
-
-        response = {'id':message['id'], 'error':''}
-        server.sendMessage(json.dumps(response))
+      return True
 
     finally:
-        if con:
-            con.close()
+        con.close()
 
-    return True
+
 
 
 
@@ -339,6 +349,7 @@ class PersistMail:
 
   users = inject.attr(Users)
   events = inject.attr(Events)
+  profiles = inject.attr(Profiles)
 
   def handleAction(self, server, message):
 
@@ -346,11 +357,11 @@ class PersistMail:
         return False
 
     """ chequeo que exista la sesion, etc """
-    session = message['session']
+    sid = message['session']
+    self.profiles.checkAccess(sid,['ADMIN','USER'])
 
+    con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
     try:
-      con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
-
       email = message['mail']
       if email == None:
           response = {'id':message['id'], 'error':''}
@@ -363,6 +374,12 @@ class PersistMail:
           response = {'id':message['id'], 'error':'usuario inválido'}
           server.sendMessage(json.dumps(response))
           return True
+
+
+      ''' chequeo que sea admin para crear un mail de otras personas '''
+      local_user_id = self.profiles.getLocalUserId(sid)
+      if local_user_id != email['user_id']:
+          self.profiles.checkAccess(sid,'ADMIN')
 
 
       self.users.createMail(con,email);
@@ -378,14 +395,12 @@ class PersistMail:
       self.events.broadcast(server,event)
 
 
-    except psycopg2.DatabaseError, e:
-
-        response = {'id':message['id'], 'error':''}
-        server.sendMessage(json.dumps(response))
+    except psycopg2.DatabaseError as e:
+        con.rollback()
+        raise e
 
     finally:
-        if con:
-            con.close()
+        con.close()
 
     return True
 
@@ -423,6 +438,7 @@ class UpdateUser:
 
   req = inject.attr(Users)
   events = inject.attr(Events)
+  profiles = inject.attr(Profiles)
 
 
   def handleAction(self, server, message):
@@ -431,11 +447,11 @@ class UpdateUser:
         return False
 
     """ chequeo que exista la sesion, etc """
-    session = message['session']
+    sid = message['session']
+    self.profiles.checkAccess(sid,['ADMIN','USER'])
 
+    con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
     try:
-      con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
-
       user = message['user']
       if user == None:
           response = {'id':message['id'], 'error':''}
@@ -454,18 +470,16 @@ class UpdateUser:
         'data':user['id']
       }
       self.events.broadcast(server,event)
-
+      return True
 
     except psycopg2.DatabaseError, e:
-
-        response = {'id':message['id'], 'error':''}
-        server.sendMessage(json.dumps(response))
+        con.rollback()
+        raise e
 
     finally:
-        if con:
-            con.close()
+        con.close()
 
-    return True
+
 
 
 
@@ -501,6 +515,7 @@ respuesta:
 class FindUser:
 
   req = inject.attr(Users)
+  profiles = inject.attr(Profiles)
 
 
   def handleAction(self, server, message):
@@ -509,33 +524,24 @@ class FindUser:
         return False
 
     """ chequeo que exista la sesion, etc """
-    session = message['session']
+    sid = message['session']
+    self.profiles.checkAccess(sid,['ADMIN','USER'])
 
+    con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
     try:
-      con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
-
       if ((message['user'] == None) or (message['user']['id'] == None)):
-          response = {'id':message['id'], 'error':''}
-          server.sendMessage(json.dumps(response))
-          return True
+          raise MalformedMessage()
 
       id = message['user']['id']
       user = self.req.findUser(con,id)
       response = {'id':message['id'], 'ok':'', 'user': user}
-      print json.dumps(response);
       server.sendMessage(json.dumps(response))
-
-
-    except psycopg2.DatabaseError, e:
-
-      response = {'id':message['id'], 'error':''}
-      server.sendMessage(json.dumps(response))
+      return True
 
     finally:
-      if con:
         con.close()
 
-    return True
+
 
 
 
@@ -567,6 +573,7 @@ respuesta:
 class ListUsers:
 
   req = inject.attr(Users)
+  profiles = inject.attr(Profiles)
 
   def handleAction(self, server, message):
 
@@ -574,22 +581,15 @@ class ListUsers:
       return False
 
     """ chequeo que exista la sesion, etc """
-    session = message['session']
+    sid = message['session']
+    self.profiles.checkAccess(sid,['ADMIN','USER'])
 
+    con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
     try:
-      con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
       rdata = self.req.listUsers(con)
       response = {'id':message['id'], 'ok':'', 'users': rdata}
-      print json.dumps(response);
       server.sendMessage(json.dumps(response))
-
-    except psycopg2.DatabaseError, e:
-
-        response = {'id':message['id'], 'error':''}
-        server.sendMessage(json.dumps(response))
+      return True
 
     finally:
-        if con:
-            con.close()
-
-    return True
+        con.close()

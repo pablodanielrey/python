@@ -184,7 +184,7 @@ class ApproveAccountRequest:
 
     """ chequeo que exista la sesion, etc """
     sid = message['session']
-    self.profiles.checkAccess(sid,['ADMIN','USER'])
+    self.profiles.checkAccess(sid,['ADMIN'])
 
 
     pid = message['id']
