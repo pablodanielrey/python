@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import uuid
+import time
 
 """
 datos de la entidad:
@@ -11,18 +12,67 @@ datos de la entidad:
 
 """
 
+class SessionNotFound(Exception):
+
+    def __init__(self):
+        pass
+
+    def __str__(self):
+        return 'Sesion no encontrada'
+
+class SessionExpired(Exception):
+
+    def __init__(self):
+        pass
+
+    def __str__(self):
+        return 'Sesion expirada'
+
 
 class Session:
 
+    expire = int(60 * 60)
     sessions = []
 
+
+    def __str__(self):
+        sr = ''
+        for s in self.sessions:
+            sr = sr + str(s) + '\n'
+        return sr
+
+    def findSession(self,id):
+        for s in self.sessions:
+            if (s['id'] == id):
+                return s
+        raise SessionNotFound()
+
+    def removeExpired(self):
+        expire = time.time()
+        for s in self.sessions:
+            if s['expire'] <= expire:
+                print 'Expirando session : ' + str(s)
+                self.sessions.remove(s)
+
+
+
     def create(self,data):
+        self.removeExpired()
         id = str(uuid.uuid4());
-        self.sessions.append({'id':id,'data':data});
+        actual = time.time()
+        expire = actual + self.expire
+        self.sessions.append({'id':id,'data':data,'expire':expire});
         return id
 
     def destroy(self, id):
-        for s in self.sessions:
-            if s['id'] == id:
-                self.sessions.remove(s)
-                return
+        s = self.findSession(id)
+        self.sessions.remove(s)
+        self.removeExpired()
+
+    def getSession(self,id):
+        s = self.findSession(id)
+        expire = time.time()
+        if (s.expire >= expire):
+            raise SessionExpired()
+        self.removeExpired()
+        return s

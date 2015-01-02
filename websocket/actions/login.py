@@ -4,7 +4,7 @@ import psycopg2
 import inject
 from model.userPassword import UserPassword
 from model.session import Session
-
+from wexceptions import MalformedMessage
 
 
 """
@@ -63,18 +63,15 @@ class Login:
       sid = self.session.create({'id':rdata['user_id']})
       response = {'id':message['id'], 'ok':'', 'session':sid, 'user_id':rdata['user_id']}
       server.sendMessage(json.dumps(response))
+
+
+      ''' para debug '''
+      print str(self.session)
+
       return True
 
-    except psycopg2.DatabaseError, e:
-
-        response = {'id':message['id'], 'error':''}
-        server.sendMessage(json.dumps(response))
-
-    except TypeError, e:
-        print e
-
-    except Error, e:
-        print e
+    except Exception as e:
+      raise e
 
     finally:
         if con:
@@ -104,20 +101,23 @@ respuesta :
 """
 class Logout:
 
+  session = inject.attr(Session)
+
   def handleAction(self, server, message):
 
     if message['action'] != 'logout':
       return False
 
-    session = message['session']
+    if 'session' not in message:
+        raise MalformedMessage()
 
-    print("logout %s", (session))
+    self.session.destroy(message['session'])
 
     ok = {'id':message['id'], 'ok':''}
     response = json.dumps(ok)
-
-    print("response : " + response);
-
     server.sendMessage(response)
+
+    ''' para debug '''
+    print str(self.session)
 
     return True
