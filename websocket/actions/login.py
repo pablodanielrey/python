@@ -3,6 +3,7 @@ import json
 import psycopg2
 import inject
 from model.config import Config
+from model.events import Events
 from model.userPassword import UserPassword
 from model.session import Session, SessionNotFound
 from wexceptions import MalformedMessage
@@ -41,6 +42,15 @@ class Login:
   userPassword = inject.attr(UserPassword)
   session = inject.attr(Session)
   config = inject.attr(Config)
+  events = inject.attr(Events)
+
+  def sendEvents(self,server,user_id):
+      event = {
+        'type':'UserLoggedInEvent',
+        'data':user_id
+      }
+      self.events.broadcast(server,event)
+
 
   def handleAction(self, server, message):
 
@@ -54,8 +64,8 @@ class Login:
         'password':message['password']
     }
 
+    con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
     try:
-      con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
       rdata = self.userPassword.findUserPassword(con,credentials)
       if rdata == None:
         response = {'id':message['id'], 'error':'autentificación denegada'}
@@ -70,17 +80,15 @@ class Login:
       response = {'id':message['id'], 'ok':'', 'session':sid, 'user_id':rdata['user_id']}
       server.sendMessage(json.dumps(response))
 
+      self.sendEvents(server,rdata['user_id'])
+
       ''' para debug '''
       print str(self.session)
 
       return True
 
-    except Exception as e:
-      raise e
-
     finally:
-        if con:
-            con.close()
+        con.close()
 
 
 
@@ -107,6 +115,15 @@ respuesta :
 class Logout:
 
   session = inject.attr(Session)
+  events = inject.attr(Events)
+  config = inject.attr(Config)
+
+  def sendEvents(self,server,user_id):
+      event = {
+        'type':'UserLoggedOutEvent',
+        'data':user_id
+      }
+      self.events.broadcast(server,event)
 
 
   def handleAction(self, server, message):
@@ -117,14 +134,21 @@ class Logout:
     if 'session' not in message:
         raise MalformedMessage()
 
+    uid = None
+    sid = message['session']
     try:
-        self.session.destroy(message['session'])
+        sess = self.session.findSession(sid)
+        uid = sess[self.config.USER_ID]
+        self.session.destroy(sid)
     except SessionNotFound as e:
         pass
 
     ok = {'id':message['id'], 'ok':''}
     response = json.dumps(ok)
     server.sendMessage(response)
+
+    if uid:
+        self.sendEvents(server,uid)
 
     ''' para debug '''
     print str(self.session)

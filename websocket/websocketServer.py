@@ -45,7 +45,7 @@ class WebsocketServer(WebSocket):
       if self.data is None:
         raise NullData()
 
-      print("Loading %s", self.data)
+      print 'C:' + self.data
       message = json.loads(str(self.data))
 
       if 'action' not in message:
@@ -80,7 +80,7 @@ class WebsocketServer(WebSocket):
 
 
   def sendMessage(self,msg):
-      print msg
+      print 'R:' + msg
       super(WebsocketServer,self).sendMessage(msg)
 
 
