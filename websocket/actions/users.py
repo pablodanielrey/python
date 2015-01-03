@@ -433,6 +433,17 @@ class UpdateUser:
     if (message['action'] != 'updateUser'):
         return False
 
+
+    if 'user' not in message:
+        raise MalformedMessage()
+
+    if 'id' not in message['user']:
+        raise MalformedMessage()
+
+    if message['user']['id'] == None:
+        raise MalformedMessage()
+
+
     """ chequeo que exista la sesion, etc """
     sid = message['session']
     self.profiles.checkAccess(sid,['ADMIN','USER'])
@@ -441,10 +452,7 @@ class UpdateUser:
     try:
       user = message['user']
       if user == None:
-          response = {'id':message['id'], 'error':''}
-          server.sendMessage(json.dumps(response))
-          return True
-
+          raise MalformedMessage()
 
       self.req.updateUser(con,user);
       con.commit()

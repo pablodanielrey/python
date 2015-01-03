@@ -82,6 +82,8 @@ class Users:
         rreq = (user.dni,user.name,user.lastname, user.id)
         cur = con.cursor()
         cur.execute('update users set dni = %s, name = %s, lastname = %s where id = %s', rreq)
+        if cur.rowcount <= 0:
+            raise Exception()
 
 
     def findUser(self,con,id):
