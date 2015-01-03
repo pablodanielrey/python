@@ -2,9 +2,9 @@
 import json, uuid, psycopg2, re
 import inject
 import hashlib
-import smtplib
-from email.mime.text import MIMEText
 
+
+from model.mail import Mail
 from model.users import Users
 from model.events import Events
 from model.profiles import Profiles
@@ -126,27 +126,20 @@ class ConfirmMail:
   users = inject.attr(Users)
   events = inject.attr(Events)
   profiles = inject.attr(Profiles)
-
+  mail = inject.attr(Mail)
 
   def sendEmail(self, url, hash, email):
 
-      smtp_host = '163.10.17.115'
-      smtp_user = 'campus'
-      smtp_pass = 'supmac'
       From = 'detise@econo.unlp.edu.ar'
       To = email
-
+      subject = 'email de confirmación de la cuenta'
       link = re.sub('\#.*$','#/confirmMail',url)
+      content = '<html><head></head><body><a href="' + link + hash + '">click aqui para confirmar la cuenta</a></body></html>'
 
-      msg = MIMEText('<html><head></head><body><a href="' + link + hash + '">click aqui para confirmar la cuenta</a></body></html>')
-      msg['Subject'] = 'email de confirmación de la cuenta'
-      msg['From'] = From
-      msg['To'] = To
-
-      s = smtplib.SMTP(smtp_host)
-      s.login(smtp_user,smtp_pass)
-      s.sendmail(From, [To], msg.as_string())
-      s.quit()
+      msg = self.mail.createMail(From,To,subject)
+      p1 = self.mail.getHtmlPart(content)
+      msg.attach(p1)
+      self.mail.sendMail(From,[To],msg.as_string())
 
       return True
 

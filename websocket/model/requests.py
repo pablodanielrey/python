@@ -25,6 +25,25 @@ class Requests:
         return rdata
 
 
+    def findRequest(self, con, id):
+        cur = con.cursor()
+        cur.execute('select id,dni,name,lastname,email,reason from account_requests where id = %s',(id,));
+        data = cur.fetchone()
+        if data == None:
+            return None
+
+        ''' transformo a diccionario la respuesta '''
+        rdata = {
+            'id':d[0],
+            'dni':d[1],
+            'name':d[2],
+            'lastname':d[3],
+            'email':d[4],
+            'reason':d[5]
+        }
+        return rdata
+
+
     def createRequest(self, con, req):
         rreq = (req['id'],req['dni'],req['name'],req['lastname'],req['email'],req['reason'])
         cur = con.cursor()

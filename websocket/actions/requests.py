@@ -5,6 +5,7 @@ from model.users import Users
 from model.objectView import ObjectView
 from model.events import Events
 from model.profiles import Profiles
+from model.mail import Mail
 from wexceptions import MalformedMessage
 
 """
@@ -240,6 +241,26 @@ class ApproveAccountRequest:
   users = inject.attr(Users)
   profiles = inject.attr(Profiles)
   events = inject.attr(Events)
+  mail = inject.attr(Mail)
+
+
+  def sendEvents(self,req_id,user_id):
+      event = {
+        'type':'AccountRequestApprovedEvent',
+        'data':reqId
+      }
+      self.events.broadcast(server,event)
+
+      event = {
+        'type':'UserUpdatedEvent',
+        'data':user_id
+      }
+      self.events.broadcast(server,event)
+
+
+  def sendNotificationMail(self,request):
+      pass
+
 
   def handleAction(self, server, message):
 
@@ -253,34 +274,25 @@ class ApproveAccountRequest:
     pid = message['id']
     reqId = message['reqId']
 
-    user_id = '';
     con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
     try:
-      reqs = self.req.listRequests(con)
-      for r in reqs:
-          if r['id'] == reqId:
-              r2 = ObjectView(r)
-              user = { 'dni':r2.dni, 'name':r2.name, 'lastname':r2.lastname }
-              user_id = self.users.createUser(con,user)
-              self.users.createMail(con,{'user_id':user_id,'email':r2.email})
-              self.req.removeRequest(con,reqId)
+      req = self.req.findRequest(con,reqId)
+      if (req == None):
+          return True
+
+      user = { 'dni':req['dni'], 'name':req['name'], 'lastname':req['lastname']}
+      user_id = self.users.createUser(con,user)
+      self.users.createMail(con,{'user_id':user_id,'email':req['email']})
+      self.req.removeRequest(con,reqId)
 
       con.commit()
 
       response = {'id':pid, 'ok':'usuario creado correctamente'}
       server.sendMessage(json.dumps(response))
 
-      event = {
-        'type':'AccountRequestApprovedEvent',
-        'data':reqId
-      }
-      self.events.broadcast(server,event)
+      self.sendEvents(reqId,user_id)
 
-      event = {
-        'type':'UserUpdatedEvent',
-        'data':user_id
-      }
-      self.events.broadcast(server,event)
+      self.sendNotificationMail(req)
 
       return True
 
