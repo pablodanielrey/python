@@ -42,6 +42,7 @@ class Session:
             sr = sr + str(s) + '\n'
         return sr
 
+
     def findSession(self,id):
         for s in self.sessions:
             if (s['id'] == id):
@@ -60,6 +61,9 @@ class Session:
                 self.sessions.remove(s)
 
 
+
+    def getSessions(self):
+        return self.sessions
 
     def create(self,data):
         self.removeExpired()

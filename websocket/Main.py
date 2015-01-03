@@ -17,6 +17,7 @@ from actions.chat import SendEventToClients
 from actions.login import Login, Logout
 from actions.requests import CreateAccountRequest, ListAccountRequests, ApproveAccountRequest, RemoveAccountRequest
 from actions.users import UpdateUser, FindUser, ListUsers, ListMails, PersistMail, ConfirmMail, RemoveMail
+from actions.status import GetStatus
 
 from model.session import Session
 
@@ -43,7 +44,8 @@ if __name__ == '__main__':
     SendEventToClients(),
     Login(), Logout(),
     CreateAccountRequest(), ListAccountRequests(), ApproveAccountRequest(), RemoveAccountRequest(),
-    ListUsers(), UpdateUser(), FindUser(), ListMails(), PersistMail(), ConfirmMail(), RemoveMail()
+    ListUsers(), UpdateUser(), FindUser(), ListMails(), PersistMail(), ConfirmMail(), RemoveMail(),
+    GetStatus()
   ]
 
 

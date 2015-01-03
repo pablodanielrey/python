@@ -46,8 +46,8 @@ class Login:
 
   def sendEvents(self,server,user_id):
       event = {
-        'type':'UserLoggedInEvent',
-        'data':user_id
+        'type':'StatusChangedEvent',
+        'data':''
       }
       self.events.broadcast(server,event)
 
@@ -120,8 +120,8 @@ class Logout:
 
   def sendEvents(self,server,user_id):
       event = {
-        'type':'UserLoggedOutEvent',
-        'data':user_id
+        'type':'StatusChangedEvent',
+        'data':''
       }
       self.events.broadcast(server,event)
 
@@ -138,7 +138,7 @@ class Logout:
     sid = message['session']
     try:
         sess = self.session.findSession(sid)
-        uid = sess[self.config.USER_ID]
+        uid = sess['data'][self.config.USER_ID]
         self.session.destroy(sid)
     except SessionNotFound as e:
         pass
