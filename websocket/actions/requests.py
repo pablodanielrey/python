@@ -262,6 +262,7 @@ class ApproveAccountRequest:
               r2 = ObjectView(r)
               user = { 'dni':r2.dni, 'name':r2.name, 'lastname':r2.lastname }
               user_id = self.users.createUser(con,user)
+              self.users.createMail(con,{'user_id':user_id,'email':r2.email})
               self.req.removeRequest(con,reqId)
 
       con.commit()
