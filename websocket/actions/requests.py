@@ -121,6 +121,7 @@ respuesta:
 class ListAccountRequests:
 
   req = Requests()
+  profiles = inject.attr(Profiles)
 
   def handleAction(self, server, message):
 
@@ -131,24 +132,16 @@ class ListAccountRequests:
     sid = message['session']
     self.profiles.checkAccess(sid,['ADMIN'])
 
-
+    con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
     try:
-      con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
       rdata = self.req.listRequests(con)
       response = {'id':message['id'], 'ok':'', 'requests': rdata}
-      print json.dumps(response);
       server.sendMessage(json.dumps(response))
-
-    except psycopg2.DatabaseError, e:
-
-        response = {'id':message['id'], 'error':''}
-        server.sendMessage(json.dumps(response))
+      return True
 
     finally:
-        if con:
-            con.close()
+        con.close()
 
-    return True
 
 
 
@@ -174,8 +167,9 @@ respuesta:
 
 class ApproveAccountRequest:
 
-  req = Requests()
-  users = Users()
+  req = inject.attr(Requests)
+  users = inject.attr(Users)
+  profiles = inject.attr(Profiles)
 
   def handleAction(self, server, message):
 
@@ -186,12 +180,11 @@ class ApproveAccountRequest:
     sid = message['session']
     self.profiles.checkAccess(sid,['ADMIN'])
 
-
     pid = message['id']
     reqId = message['reqId']
 
+    con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
     try:
-      con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
       reqs = self.req.listRequests(con)
       for r in reqs:
           if r['id'] == reqId:
@@ -199,8 +192,8 @@ class ApproveAccountRequest:
               user = { 'dni':r2.dni, 'name':r2.name, 'lastname':r2.lastname }
               self.users.createUser(con,user)
               self.req.removeRequest(con,reqId)
-              con.commit()
 
+      con.commit()
 
       response = {'id':pid, 'ok':'usuario creado correctamente'}
       server.sendMessage(json.dumps(response))
@@ -213,14 +206,9 @@ class ApproveAccountRequest:
 
       return True
 
-    except psycopg2.DatabaseError, e:
-
-        response = {'id':pid, 'error':''}
-        server.sendMessage(json.dumps(response))
-
-        if con:
-            con.rollback()
+    except psycopg2.DatabaseError as e:
+        con.rollback()
+        raise e
 
     finally:
-        if con:
-            con.close()
+        con.close()
