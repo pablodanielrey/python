@@ -170,13 +170,14 @@ class ConfirmMail:
         raise MalformedMessage()
 
 
-    """ chequeo que exista la sesion, etc """
-    sid = message['session']
-    self.profiles.checkAccess(sid,['ADMIN','USER'])
-
     con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
     try:
       if message['sub_action'] == 'generate':
+
+          """ chequeo que exista la sesion, etc """
+          sid = message['session']
+          self.profiles.checkAccess(sid,['ADMIN','USER'])
+
           email = message['mail_id']
           if email == None:
               response = {'id':message['id'], 'error':''}
@@ -222,13 +223,6 @@ class ConfirmMail:
               response = {'id':message['id'], 'error':'mail inxesistente'}
               server.sendMessage(json.dumps(response))
               return True
-
-
-          ''' chequeo que sea admin para confirmar mails de otras personas '''
-          local_user_id = self.profiles.getLocalUserId(sid)
-          if local_user_id != mail['user_id']:
-              self.profiles.checkAccess(sid,'ADMIN')
-
 
           self.confirm(con,mail)
 
