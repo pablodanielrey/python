@@ -28,8 +28,8 @@ class Requests:
     def findRequest(self, con, id):
         cur = con.cursor()
         cur.execute('select id,dni,name,lastname,email,reason from account_requests where id = %s',(id,));
-        data = cur.fetchone()
-        if data == None:
+        d = cur.fetchone()
+        if d == None:
             return None
 
         ''' transformo a diccionario la respuesta '''

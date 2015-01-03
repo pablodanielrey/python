@@ -244,10 +244,10 @@ class ApproveAccountRequest:
   mail = inject.attr(Mail)
 
 
-  def sendEvents(self,req_id,user_id):
+  def sendEvents(self,server,req_id,user_id):
       event = {
         'type':'AccountRequestApprovedEvent',
-        'data':reqId
+        'data':req_id
       }
       self.events.broadcast(server,event)
 
@@ -280,9 +280,16 @@ class ApproveAccountRequest:
       if (req == None):
           return True
 
-      user = { 'dni':req['dni'], 'name':req['name'], 'lastname':req['lastname']}
+      user = {
+        'dni':req['dni'],
+        'name':req['name'],
+        'lastname':req['lastname']
+      }
       user_id = self.users.createUser(con,user)
-      self.users.createMail(con,{'user_id':user_id,'email':req['email']})
+      self.users.createMail(con,{
+            'user_id':user_id,
+            'email':req['email']
+      })
       self.req.removeRequest(con,reqId)
 
       con.commit()
@@ -290,7 +297,7 @@ class ApproveAccountRequest:
       response = {'id':pid, 'ok':'usuario creado correctamente'}
       server.sendMessage(json.dumps(response))
 
-      self.sendEvents(reqId,user_id)
+      self.sendEvents(server,reqId,user_id)
 
       self.sendNotificationMail(req)
 
