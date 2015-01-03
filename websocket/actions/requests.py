@@ -5,12 +5,84 @@ from model.users import Users
 from model.objectView import ObjectView
 from model.events import Events
 from model.profiles import Profiles
-
+from wexceptions import MalformedMessage
 
 """
     Modulo de acceso a la capa de las peticiones de cuentas.
 
 """
+
+
+"""
+peticion:
+{
+  "id":"id de la peticion"
+  "action":"removeAccountRequest",
+  "session":"id de session obtenido en el login",
+  "reqId":"id del request a eliminar"
+}
+
+respuesta:
+{
+  "id":"id de la peticion"
+  O "ok":""
+  O "error":""
+}
+
+"""
+
+
+class RemoveAccountRequest:
+
+  req = inject.attr(Requests)
+  events = inject.attr(Events)
+  profiles = inject.attr(Profiles)
+
+  def handleAction(self, server, message):
+
+    if message['action'] != 'removeAccountRequest':
+      return False
+
+    """ chequeo que exista la sesion, etc """
+    sid = message['session']
+    self.profiles.checkAccess(sid,['ADMIN'])
+
+    if 'id' not in message:
+        raise MalformedMessage()
+
+    if 'reqId' not in message:
+        raise MalformedMessage()
+
+    pid = message['id']
+    rid = message['reqId']
+
+    con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
+    try:
+      self.req.removeRequest(con,rid)
+      con.commit()
+
+      response = {'id':pid, 'ok':'petición eliminada correctamente'}
+      server.sendMessage(json.dumps(response))
+
+      event = {
+        'type':'AccountRequestRemovedEvent',
+        'data': rid
+      }
+      self.events.broadcast(server,event)
+
+      return True
+
+    except psycopg2.DatabaseError as e:
+
+        con.rollback()
+        raise e
+
+    finally:
+        con.close()
+
+
+
+
 
 
 """
@@ -60,8 +132,8 @@ class CreateAccountRequest:
     data = message['request']
     data['id'] = str(uuid.uuid4());
 
+    con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
     try:
-      con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
       self.req.createRequest(con,data)
       con.commit()
 
@@ -70,23 +142,15 @@ class CreateAccountRequest:
 
       event = {
         'type':'NewAccountRequestEvent',
-        'data':data['id']
+        'data': data['id']
       }
       self.events.broadcast(server,event)
 
-
-    except psycopg2.DatabaseError, e:
-
-        response = {'id':pid, 'error':''}
-        server.sendMessage(json.dumps(response))
-
-        print 'peticion error'
+      return True
 
     finally:
-        if con:
-            con.close()
+        con.close()
 
-    return True
 
 
 
@@ -120,7 +184,7 @@ respuesta:
 
 class ListAccountRequests:
 
-  req = Requests()
+  req = inject.attr(Requests)
   profiles = inject.attr(Profiles)
 
   def handleAction(self, server, message):
