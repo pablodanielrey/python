@@ -7,88 +7,52 @@ class Users:
 
 
     def createMail(self,con,data):
-        try:
-            mail = ObjectView(data)
-            rreq = (str(uuid.uuid4()),mail.user_id,mail.email,False,'')
-            cur = con.cursor()
-            cur.execute('insert into user_mails (id,user_id,email,confirmed,hash) values (%s,%s,%s,%s,%s)', rreq)
-
-        except psycopg2.DatabaseError, e:
-            if con:
-                con.rollback()
-            print e
+        mail = ObjectView(data)
+        mid = str(uuid.uuid4())
+        rreq = (mid,mail.user_id,mail.email,False,'')
+        cur = con.cursor()
+        cur.execute('insert into user_mails (id,user_id,email,confirmed,hash) values (%s,%s,%s,%s,%s)', rreq)
+        return mid
 
     def findMailByHash(self,con,hash):
-        try:
-            cur = con.cursor()
-            cur.execute('select id,user_id,email,confirmed,hash from user_mails where hash = %s', (hash,))
-            data = cur.fetchone()
-            if data != None:
-                return self.convertMailToDict(data)
-            else:
-                return None
-
-        except psycopg2.DatabaseError, e:
-            if con:
-                con.rollback()
-            print e
-
-    def findMail(self,con,id):
-        try:
-            cur = con.cursor()
-            cur.execute('select id,user_id,email,confirmed,hash from user_mails where id = %s', (id,))
-            data = cur.fetchone()
-            if data != None:
-                return self.convertMailToDict(data)
-            else:
-                return None
-
-        except psycopg2.DatabaseError, e:
-            if con:
-                con.rollback()
-            print e
-
-
-
-    def listMails(self, con, user_id):
-        try:
-            cur = con.cursor()
-            cur.execute('select id, user_id, email, confirmed, hash from user_mails where user_id = %s',(user_id,))
-            data = cur.fetchall()
-            rdata = []
-            for d in data:
-                rdata.append(self.convertMailToDict(d))
-            return rdata
-
-        except psycopg2.DatabaseError, e:
-            print e
+        cur = con.cursor()
+        cur.execute('select id,user_id,email,confirmed,hash from user_mails where hash = %s', (hash,))
+        data = cur.fetchone()
+        if data != None:
+            return self.convertMailToDict(data)
+        else:
             return None
 
+    def findMail(self,con,id):
+        cur = con.cursor()
+        cur.execute('select id,user_id,email,confirmed,hash from user_mails where id = %s', (id,))
+        data = cur.fetchone()
+        if data != None:
+            return self.convertMailToDict(data)
+        else:
+            return None
+
+    def listMails(self, con, user_id):
+        cur = con.cursor()
+        cur.execute('select id, user_id, email, confirmed, hash from user_mails where user_id = %s',(user_id,))
+        data = cur.fetchall()
+        rdata = []
+        for d in data:
+            rdata.append(self.convertMailToDict(d))
+        return rdata
 
     def deleteMail(self,con,id):
-        try:
-            cur = con.cursor()
-            cur.execute('delete from user_mails where id = %s', (id,))
-
-        except psycopg2.DatabaseError, e:
-            if con:
-                con.rollback()
-            print e
+        cur = con.cursor()
+        cur.execute('delete from user_mails where id = %s', (id,))
 
 
     def updateMail(self,con,data):
-        try:
-            if 'hash' not in data:
-                data['hash'] = ''
-            mail = ObjectView(data)
-            rreq = (mail.email, mail.confirmed, mail.hash, mail.id)
-            cur = con.cursor()
-            cur.execute('update user_mails set email = %s, confirmed = %s, hash = %s where id = %s', rreq)
-
-        except psycopg2.DatabaseError, e:
-            if con:
-                con.rollback()
-            print e
+        if 'hash' not in data:
+            data['hash'] = ''
+        mail = ObjectView(data)
+        rreq = (mail.email, mail.confirmed, mail.hash, mail.id)
+        cur = con.cursor()
+        cur.execute('update user_mails set email = %s, confirmed = %s, hash = %s where id = %s', rreq)
 
 
     ''' transformo a diccionario las respuestas de psycopg2'''
@@ -106,59 +70,37 @@ class Users:
     """-------------------------------"""
 
     def createUser(self,con,data):
-        try:
-            user = ObjectView(data)
-            rreq = (str(uuid.uuid4()),user.dni,user.name,user.lastname)
-            cur = con.cursor()
-            cur.execute('insert into users (id,dni,name,lastname) values (%s,%s,%s,%s)', rreq)
-
-        except psycopg2.DatabaseError, e:
-            if con:
-                con.rollback()
-            print e
+        user = ObjectView(data)
+        uid = str(uuid.uuid4())
+        rreq = (uid,user.dni,user.name,user.lastname)
+        cur = con.cursor()
+        cur.execute('insert into users (id,dni,name,lastname) values (%s,%s,%s,%s)', rreq)
+        return uid
 
     def updateUser(self,con,data):
-        try:
-            user = ObjectView(data)
-            rreq = (user.dni,user.name,user.lastname, user.id)
-            cur = con.cursor()
-            cur.execute('update users set dni = %s, name = %s, lastname = %s where id = %s', rreq)
-
-        except psycopg2.DatabaseError, e:
-            if con:
-                con.rollback()
-            print e
+        user = ObjectView(data)
+        rreq = (user.dni,user.name,user.lastname, user.id)
+        cur = con.cursor()
+        cur.execute('update users set dni = %s, name = %s, lastname = %s where id = %s', rreq)
 
 
     def findUser(self,con,id):
-        try:
-            cur = con.cursor()
-            cur.execute('select id,dni,name,lastname from users where id = %s', (id,))
-            data = cur.fetchone()
-            if data != None:
-                return self.convertUserToDict(data)
-            else:
-                return None
-
-        except psycopg2.DatabaseError, e:
-            if con:
-                con.rollback()
-            print e
-
+        cur = con.cursor()
+        cur.execute('select id,dni,name,lastname from users where id = %s', (id,))
+        data = cur.fetchone()
+        if data != None:
+            return self.convertUserToDict(data)
+        else:
+            return None
 
     def listUsers(self, con):
-        try:
-            cur = con.cursor()
-            cur.execute('select id,dni,name,lastname from users')
-            data = cur.fetchall()
-            rdata = []
-            for d in data:
-                rdata.append(self.convertUserToDict(d))
-            return rdata
-
-        except psycopg2.DatabaseError, e:
-            print e
-            return None
+        cur = con.cursor()
+        cur.execute('select id,dni,name,lastname from users')
+        data = cur.fetchall()
+        rdata = []
+        for d in data:
+            rdata.append(self.convertUserToDict(d))
+        return rdata
 
 
     ''' transformo a diccionario las respuestas de psycopg2'''

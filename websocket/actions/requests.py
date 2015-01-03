@@ -227,6 +227,11 @@ respuesta:
   O "error":""
 }
 
+eventos :
+
+AccountRequestAprovedEvent
+UserUpdatedEvent
+
 """
 
 class ApproveAccountRequest:
@@ -234,6 +239,7 @@ class ApproveAccountRequest:
   req = inject.attr(Requests)
   users = inject.attr(Users)
   profiles = inject.attr(Profiles)
+  events = inject.attr(Events)
 
   def handleAction(self, server, message):
 
@@ -247,6 +253,7 @@ class ApproveAccountRequest:
     pid = message['id']
     reqId = message['reqId']
 
+    user_id = '';
     con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
     try:
       reqs = self.req.listRequests(con)
@@ -254,7 +261,7 @@ class ApproveAccountRequest:
           if r['id'] == reqId:
               r2 = ObjectView(r)
               user = { 'dni':r2.dni, 'name':r2.name, 'lastname':r2.lastname }
-              self.users.createUser(con,user)
+              user_id = self.users.createUser(con,user)
               self.req.removeRequest(con,reqId)
 
       con.commit()
@@ -265,6 +272,12 @@ class ApproveAccountRequest:
       event = {
         'type':'AccountRequestApprovedEvent',
         'data':reqId
+      }
+      self.events.broadcast(server,event)
+
+      event = {
+        'type':'UserUpdatedEvent',
+        'data':user_id
       }
       self.events.broadcast(server,event)
 
