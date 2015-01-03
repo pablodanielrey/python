@@ -546,6 +546,8 @@ peticion:
     "id":"",
     "action":"listUsers"
     "session":"sesion de usuario"
+-   "onlyIds":"True|False"
+-   "ids":"[ids de los usuarios a retornar en el listado]"
 }
 
 respuesta:
@@ -582,6 +584,13 @@ class ListUsers:
     con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
     try:
       rdata = self.req.listUsers(con)
+
+      if 'onlyIds' in message:
+          rdata = map(lambda x: {'id':x['id']}, rdata)
+
+      if 'ids' in message:
+          rdata = filter(lambda x: x['id'] in message['ids'], rdata)
+
       response = {'id':message['id'], 'ok':'', 'users': rdata}
       server.sendMessage(json.dumps(response))
       return True
