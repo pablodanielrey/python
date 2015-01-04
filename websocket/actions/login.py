@@ -2,17 +2,204 @@
 import json
 import psycopg2
 import inject
+import hashlib
+from model.profiles import Profiles
+from model.mail import Mail
 from model.config import Config
 from model.events import Events
+from model.users import Users
 from model.userPassword import UserPassword
 from model.session import Session, SessionNotFound
-from wexceptions import MalformedMessage
+from wexceptions import MalformedMessage, InsuficientAccess
 
 
 """
         Modulo que contiene las clases de acceso a la funcionalidad de login/logout
 """
 
+
+"""
+peticion:
+{
+    id: "id de la peticion"
+    action: "resetPassword"
+    username: 'nombre de usuario'
+    url: 'url del cliente para generar el link'
+}
+
+respuesta:
+{
+    id: "id de la peticion",
+    ok: 'mensaje de ok, en caso correcto de la generación y envio por correo.'
+    error: 'mensaje de error en caso de error'
+}
+"""
+
+
+class ResetPassword:
+
+    users = inject.attr(Users)
+    userPassword = inject.attr(UserPassword)
+    mail = inject.attr(Mail)
+
+    ''' envío el hash a todos los mails que tenga confirmado el usuario '''
+    def sendEmail(self, con, url, hash, username):
+
+        creds = self.userPassword.findCredentials(con,username)
+        user_id = creds['user_id']
+
+        From = 'detise@econo.unlp.edu.ar'
+        subject = 'email de confirmación de cambio de clave'
+        link = re.sub('\#.*$','#/changePassword',url)
+        content = '<html><head></head><body><a href="' + link + "/" + username + "/" + hash + '">click aqui para cambiar la clave de su cuenta</a></body></html>'
+
+        mails = self.users.listMails(con,user_id)
+        mails = filter(lambda x: x['confirmed'] == True, mails)
+
+        for email in mails:
+            To = email['email']
+
+            msg = self.mail.createMail(From,To,subject)
+            p1 = self.mail.getHtmlPart(content)
+            msg.attach(p1)
+            self.mail.sendMail(From,[To],msg.as_string())
+
+        return True
+
+
+
+    def handleAction(self, server, message):
+
+        if 'id' not in message:
+            raise MalformedMessage()
+
+        if 'action' not in message:
+            raise MalformedMessage()
+
+        if message['action'] != 'resetPassword':
+            return False
+
+        if 'username' not in message:
+            raise MalformedMessage()
+
+        if 'url' not in message:
+            raise MalformedMessage()
+
+
+        username = message['username']
+        url = message['url']
+
+        con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
+        try:
+            hash = self.userPassword.getResetPasswordHash(con,username)
+            self.sendEmail(url,hash,username)
+
+            con.commit()
+
+            response = {'id':message['id'], 'ok':'hash generado correctamente'}
+            server.sendMessage(json.dumps(response))
+
+            return True
+
+        finally:
+            con.close()
+
+
+"""
+peticion:
+{
+    id: "id de la peticion"
+    action: "changePassword"
+    username: 'nombre de usuario'
+    password: 'clave a configurar'
+    session: "id de session, en caso de cambiar la clave a un usuario logueado"
+    hash: "hash generado, en caso de cambiar la clave a un usuario NO logueado (resetPassword)"
+}
+
+respuesta:
+{
+    id: "id de la peticion",
+    ok: 'mensaje de ok, en caso correcto del cambio'
+    error: 'mensaje de error en caso de error en el cambio'
+}
+"""
+
+class ChangePassword:
+
+    profiles = inject.attr(Profiles)
+    userPassword = inject.attr(UserPassword)
+    session = inject.attr(Session)
+    config = inject.attr(Config)
+
+
+    def changePassword(self, con, sid, username, password):
+        s = self.session.getSession(sid)
+        user_id = s[self.config.USER_ID]
+        creds = self.userPassword.findCredentials(con,username)
+
+        if (creds['user_id'] != user_id):
+            ''' se esta tratando de modificar credenciales que pertenecen a otro usuario, no el de la session indicada '''
+            raise InsuficientAccess()
+
+        newCreds = {
+            'id': creds['id'],
+            'user_id': creds['user_id'],
+            'username': username,
+            'password': password
+        }
+        self.userPassword.updateUserPassword(con,newCreds);
+
+
+
+    def handleAction(self, server, message):
+
+        if 'id' not in message:
+            raise MalformedMessage()
+
+        if 'action' not in message:
+            raise MalformedMessage()
+
+        if message['action'] != 'changePassword':
+            return False
+
+        if 'username' not in message:
+            raise MalformedMessage()
+
+        username = message['username']
+        password = message['password']
+
+
+        con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
+        try:
+            ''' es un reseteo de clave? '''
+            if 'hash' in message:
+
+                hash = message['hash']
+                self.userPassword.resetUserPassword(con,hash,username,password)
+
+                response = {'id':message['id'], 'ok':'se ha cambiado la clave exitósamente'}
+                server.sendMessage(json.dumps(response))
+
+                con.commit()
+
+                return True
+
+            """ es un cambio normal de un usuario logueado """
+            """ chequeo que exista la sesion, etc """
+            sid = message['session']
+            self.profiles.checkAccess(sid,['ADMIN','USER'])
+
+            self.changePassword(con,sid,username,password)
+
+            con.commit()
+
+            response = {'id':message['id'], 'ok':'se ha cambiado la clave exitósamente'}
+            server.sendMessage(json.dumps(response))
+
+            return True
+
+        finally:
+            con.close()
 
 
 

@@ -133,7 +133,7 @@ class ConfirmMail:
       From = 'detise@econo.unlp.edu.ar'
       To = email
       subject = 'email de confirmación de la cuenta'
-      link = re.sub('\#.*$','#/confirmMail',url)
+      link = re.sub('\#.*$','#/confirmMail/',url)
       content = '<html><head></head><body><a href="' + link + hash + '">click aqui para confirmar la cuenta</a></body></html>'
 
       msg = self.mail.createMail(From,To,subject)
