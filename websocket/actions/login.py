@@ -3,6 +3,7 @@ import json
 import psycopg2
 import inject
 import hashlib
+import re
 from model.profiles import Profiles
 from model.mail import Mail
 from model.config import Config
