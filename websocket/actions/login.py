@@ -92,7 +92,7 @@ class ResetPassword:
         con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
         try:
             hash = self.userPassword.getResetPasswordHash(con,username)
-            self.sendEmail(url,hash,username)
+            self.sendEmail(con,url,hash,username)
 
             con.commit()
 
