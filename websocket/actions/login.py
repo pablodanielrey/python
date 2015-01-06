@@ -145,7 +145,8 @@ class ChangePassword:
 
         if (creds['user_id'] != user_id):
             ''' se esta tratando de modificar credenciales que pertenecen a otro usuario, no el de la session indicada '''
-            raise InsuficientAccess()
+            if not self.profiles.checkAccess(sid,'ADMIN'):
+                raise InsuficientAccess()
 
         newCreds = {
             'id': creds['id'],
@@ -266,7 +267,9 @@ class Login:
         return True
 
       sess = {
-        self.config.configs['session_user_id']:rdata['user_id']
+        self.config.configs['session_user_id']:rdata['user_id'],
+        'ip':server.address[0],
+        'port':server.address[1]
       }
       sid = self.session.create(sess)
 
