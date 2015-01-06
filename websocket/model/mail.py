@@ -3,6 +3,16 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.header import Header
 
+
+class MailServerNotFound(Exception):
+    def __init__(self):
+        pass
+
+    def __str__(self):
+        return self.__class__.__name__;
+
+
+
 class Mail:
 
     smtp_host = '163.10.17.115'
@@ -28,6 +38,8 @@ class Mail:
     def sendMail(self, ffrom, tos, body):
       try:
           s = smtplib.SMTP(self.smtp_host)
+          if s == None:
+              raise MailServerNotFound()
           s.login(self.smtp_user,self.smtp_pass)
           s.sendmail(ffrom, tos, body)
 

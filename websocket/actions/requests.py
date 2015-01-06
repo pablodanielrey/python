@@ -284,6 +284,10 @@ class ApproveAccountRequest:
       if (req == None):
           return True
 
+      user = self.users.findUserByDni(con,req['dni'])
+      if user != None:
+          raise DupplicatedUser()
+
       user = {
         'dni':req['dni'],
         'name':req['name'],

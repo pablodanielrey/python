@@ -86,6 +86,15 @@ class Users:
             raise Exception()
 
 
+    def findUserByDni(self,con,dni):
+        cur = con.cursor()
+        cur.execute('select id,dni,name,lastname from users where dni = %s', (dni,))
+        data = cur.fetchone()
+        if data != None:
+            return self.convertUserToDict(data)
+        else:
+            return None
+
     def findUser(self,con,id):
         cur = con.cursor()
         cur.execute('select id,dni,name,lastname from users where id = %s', (id,))
