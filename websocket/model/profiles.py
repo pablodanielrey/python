@@ -22,7 +22,7 @@ class Profiles:
 
     def checkAccess(self,sid,roles):
         s = self.session.getSession(sid)
-        user_id = s[self.config.USER_ID]
+        user_id = s[self.config.configs['session_user_id']]
 
         ''' chequeo que ese usuario tenga el rol pasado por parámetro (ahora agrego el rol pasado por parametro asi siempre da ok.) '''
         current_roles = roles
@@ -36,5 +36,5 @@ class Profiles:
 
     def getLocalUserId(self,sid):
         s = self.session.getSession(sid)
-        user_id = s[self.config.USER_ID]
+        user_id = s[self.config.configs['session_user_id']]
         return user_id

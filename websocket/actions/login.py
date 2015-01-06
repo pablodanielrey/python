@@ -42,6 +42,7 @@ class ResetPassword:
     users = inject.attr(Users)
     userPassword = inject.attr(UserPassword)
     mail = inject.attr(Mail)
+    config = inject.attr(Config)
 
     ''' envío el hash a todos los mails que tenga confirmado el usuario '''
     def sendEmail(self, con, url, hash, username):
@@ -49,8 +50,12 @@ class ResetPassword:
         creds = self.userPassword.findCredentials(con,username)
         user_id = creds['user_id']
 
-        From = 'detise@econo.unlp.edu.ar'
-        subject = 'email de confirmación de cambio de clave'
+        From = self.config.configs['mail_reset_password_from']
+        subject = self.config.configs['mail_reset_password_subject']
+
+
+        ''' falta leer el contenido del archivo y ver el tema de la url '''
+
         link = re.sub('\#.*$','#/changePassword',url)
         content = '<html><head></head><body><a href="' + link + "/" + username + "/" + hash + '">click aqui para cambiar la clave de su cuenta</a></body></html>'
 
@@ -90,7 +95,7 @@ class ResetPassword:
         username = message['username']
         url = message['url']
 
-        con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
+        con = psycopg2.connect(host=self.config.configs['database_host'], dbname=self.config.configs['database_database'], user=self.config.configs['database_user'], password=self.config.configs['database_password'])
         try:
             hash = self.userPassword.getResetPasswordHash(con,username)
             self.sendEmail(con,url,hash,username)
@@ -135,7 +140,7 @@ class ChangePassword:
 
     def changePassword(self, con, sid, username, password):
         s = self.session.getSession(sid)
-        user_id = s[self.config.USER_ID]
+        user_id = s[self.config.configs['session_user_id']]
         creds = self.userPassword.findCredentials(con,username)
 
         if (creds['user_id'] != user_id):
@@ -170,7 +175,7 @@ class ChangePassword:
         password = message['password']
 
 
-        con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
+        con = psycopg2.connect(host=self.config.configs['database_host'], dbname=self.config.configs['database_database'], user=self.config.configs['database_user'], password=self.config.configs['database_password'])
         try:
             ''' es un reseteo de clave? '''
             if 'hash' in message:
@@ -252,7 +257,7 @@ class Login:
         'password':message['password']
     }
 
-    con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
+    con = psycopg2.connect(host=self.config.configs['database_host'], dbname=self.config.configs['database_database'], user=self.config.configs['database_user'], password=self.config.configs['database_password'])
     try:
       rdata = self.userPassword.findUserPassword(con,credentials)
       if rdata == None:
@@ -261,7 +266,7 @@ class Login:
         return True
 
       sess = {
-        self.config.USER_ID:rdata['user_id']
+        self.config.configs['session_user_id']:rdata['user_id']
       }
       sid = self.session.create(sess)
 
@@ -326,7 +331,7 @@ class Logout:
     sid = message['session']
     try:
         sess = self.session.findSession(sid)
-        uid = sess['data'][self.config.USER_ID]
+        uid = sess['data'][self.config.configs['session_user_id']]
         self.session.destroy(sid)
     except SessionNotFound as e:
         pass

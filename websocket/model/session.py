@@ -3,6 +3,8 @@ import uuid
 import time
 import inject
 
+from model.config import Config
+
 """
 datos de la entidad:
 
@@ -34,6 +36,7 @@ class Session:
 
     expire = int(60 * 60)
     sessions = []
+    config = inject.attr(Config)
 
 
     def __str__(self):
@@ -45,7 +48,7 @@ class Session:
 
     def findSession(self,id):
         for s in self.sessions:
-            if (s['id'] == id):
+            if (s[self.config.configs['session_id']] == id):
                 return s
         raise SessionNotFound()
 
@@ -71,7 +74,7 @@ class Session:
         actual = time.time()
         expire = actual + self.expire
         self.sessions.append({
-            'id':id,
+            self.config.configs['session_id']:id,
             'data':data,
             'expire':expire
         });

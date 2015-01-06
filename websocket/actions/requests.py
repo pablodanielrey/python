@@ -7,6 +7,7 @@ from model.objectView import ObjectView
 from model.events import Events
 from model.profiles import Profiles
 from model.mail import Mail
+from model.config import Config
 from model.userPassword import UserPassword
 from wexceptions import MalformedMessage
 
@@ -41,6 +42,7 @@ class RemoveAccountRequest:
   req = inject.attr(Requests)
   events = inject.attr(Events)
   profiles = inject.attr(Profiles)
+  config = inject.attr(Config)
 
   def handleAction(self, server, message):
 
@@ -60,7 +62,7 @@ class RemoveAccountRequest:
     pid = message['id']
     rid = message['reqId']
 
-    con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
+    con = psycopg2.connect(host=self.config.configs['database_host'], dbname=self.config.configs['database_database'], user=self.config.configs['database_user'], password=self.config.configs['database_password'])
     try:
       self.req.removeRequest(con,rid)
       con.commit()
@@ -93,8 +95,7 @@ class RemoveAccountRequest:
 peticion:
 {
   "id":"id de la peticion"
-  "action":"createAccountRequest",
-  "session":"id de session obtenido en el login"
+  "action":"createAccountRequest"
 
   "request":{
     "dni":""
@@ -120,23 +121,25 @@ class CreateAccountRequest:
   req = inject.attr(Requests)
   events = inject.attr(Events)
   profiles = inject.attr(Profiles)
+  config = inject.attr(Config)
 
   def handleAction(self, server, message):
 
     if message['action'] != 'createAccountRequest':
       return False
 
-    """ chequeo que exista la sesion, etc """
-    sid = message['session']
-    self.profiles.checkAccess(sid,['ADMIN','USER'])
+    if 'id' not in message:
+        raise MalformedMessage()
 
+    if 'request' not in message:
+        raise MalformedMessage()
 
     pid = message['id']
 
     data = message['request']
     data['id'] = str(uuid.uuid4());
 
-    con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
+    con = psycopg2.connect(host=self.config.configs['database_host'], dbname=self.config.configs['database_database'], user=self.config.configs['database_user'], password=self.config.configs['database_password'])
     try:
       self.req.createRequest(con,data)
       con.commit()
@@ -190,6 +193,7 @@ class ListAccountRequests:
 
   req = inject.attr(Requests)
   profiles = inject.attr(Profiles)
+  config = inject.attr(Config)
 
   def handleAction(self, server, message):
 
@@ -200,7 +204,7 @@ class ListAccountRequests:
     sid = message['session']
     self.profiles.checkAccess(sid,['ADMIN'])
 
-    con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
+    con = psycopg2.connect(host=self.config.configs['database_host'], dbname=self.config.configs['database_database'], user=self.config.configs['database_user'], password=self.config.configs['database_password'])
     try:
       rdata = self.req.listRequests(con)
       response = {'id':message['id'], 'ok':'', 'requests': rdata}
@@ -246,6 +250,7 @@ class ApproveAccountRequest:
   events = inject.attr(Events)
   mail = inject.attr(Mail)
   userPass = inject.attr(UserPassword)
+  config = inject.attr(Config)
 
 
   def sendEvents(self,server,req_id,user_id):
@@ -278,7 +283,7 @@ class ApproveAccountRequest:
     pid = message['id']
     reqId = message['reqId']
 
-    con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
+    con = psycopg2.connect(host=self.config.configs['database_host'], dbname=self.config.configs['database_database'], user=self.config.configs['database_user'], password=self.config.configs['database_password'])
     try:
       req = self.req.findRequest(con,reqId)
       if (req == None):

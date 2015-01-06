@@ -4,6 +4,7 @@ import inject
 from wexceptions import MalformedMessage
 from model.profiles import Profiles
 from model.session import Session
+from model.config import Config
 
 class GetStatus:
 

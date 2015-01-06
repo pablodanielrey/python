@@ -20,7 +20,7 @@ from actions.users import UpdateUser, FindUser, ListUsers, ListMails, PersistMai
 from actions.status import GetStatus
 
 from model.session import Session
-
+from model.config import Config
 
 def config_injector(binder):
     binder.bind(Session,Session())
@@ -37,6 +37,7 @@ if __name__ == '__main__':
 
 
   inject.configure(config_injector)
+  config = inject.instance(Config)
 
   ''' aca se definen las acciones a ser manejadas por el server de websocket '''
 

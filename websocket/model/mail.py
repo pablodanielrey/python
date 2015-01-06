@@ -1,7 +1,11 @@
+import inject
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.header import Header
+
+from model.config import Config
+
 
 
 class MailServerNotFound(Exception):
@@ -15,9 +19,7 @@ class MailServerNotFound(Exception):
 
 class Mail:
 
-    smtp_host = '163.10.17.115'
-    smtp_user = 'campus'
-    smtp_pass = 'supmac'
+    config = inject.attr(Config)
 
     def createMail(self,From,To,subject):
         msg = MIMEMultipart('alternative')
@@ -37,10 +39,10 @@ class Mail:
 
     def sendMail(self, ffrom, tos, body):
       try:
-          s = smtplib.SMTP(self.smtp_host)
+          s = smtplib.SMTP(self.config.configs['mail_host'])
           if s == None:
               raise MailServerNotFound()
-          s.login(self.smtp_user,self.smtp_pass)
+          s.login(self.config.configs['mail_user'],self.config.configs['mail_password'])
           s.sendmail(ffrom, tos, body)
 
       finally:

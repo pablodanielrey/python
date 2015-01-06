@@ -8,6 +8,7 @@ from model.mail import Mail
 from model.users import Users
 from model.events import Events
 from model.profiles import Profiles
+from model.config import Config
 from wexceptions import MalformedMessage
 
 """
@@ -40,6 +41,7 @@ class RemoveMail:
   users = inject.attr(Users)
   events = inject.attr(Events)
   profiles = inject.attr(Profiles)
+  config = inject.attr(Config)
 
   def handleAction(self, server, message):
 
@@ -53,7 +55,7 @@ class RemoveMail:
 
 
     try:
-      con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
+      con = psycopg2.connect(host=self.config.configs['database_host'], dbname=self.config.configs['database_database'], user=self.config.configs['database_user'], password=self.config.configs['database_password'])
 
       if 'mail_id' not in message:
           response = {'id':message['id'], 'error':''}
@@ -127,12 +129,16 @@ class ConfirmMail:
   events = inject.attr(Events)
   profiles = inject.attr(Profiles)
   mail = inject.attr(Mail)
+  config = inject.attr(Config)
 
   def sendEmail(self, url, hash, email):
 
-      From = 'detise@econo.unlp.edu.ar'
+      From = self.config.configs['mail_confirm_mail_from']
       To = email
-      subject = 'email de confirmación de la cuenta'
+      subject = self.config.configs['mail_confirm_mail_subject']
+
+      ''' falta leer el archivo desde un template y el tema de la url '''
+
       link = re.sub('\#.*$','#/confirmMail/',url)
       content = '<html><head></head><body><a href="' + link + hash + '">click aqui para confirmar la cuenta</a></body></html>'
 
@@ -170,7 +176,7 @@ class ConfirmMail:
         raise MalformedMessage()
 
 
-    con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
+    con = psycopg2.connect(host=self.config.configs['database_host'], dbname=self.config.configs['database_database'], user=self.config.configs['database_user'], password=self.config.configs['database_password'])
     try:
       if message['sub_action'] == 'generate':
 
@@ -281,6 +287,7 @@ class ListMails:
 
   users = inject.attr(Users);
   profiles = inject.attr(Profiles)
+  config = inject.attr(Config)
 
   def handleAction(self, server, message):
 
@@ -291,7 +298,7 @@ class ListMails:
     sid = message['session']
     self.profiles.checkAccess(sid,['ADMIN','USER'])
 
-    con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
+    con = psycopg2.connect(host=self.config.configs['database_host'], dbname=self.config.configs['database_database'], user=self.config.configs['database_user'], password=self.config.configs['database_password'])
     try:
       ''' chequeo que sea admin para listar los mails de otras personas '''
       local_user_id = self.profiles.getLocalUserId(sid)
@@ -337,6 +344,7 @@ class PersistMail:
   users = inject.attr(Users)
   events = inject.attr(Events)
   profiles = inject.attr(Profiles)
+  config = inject.attr(Config)
 
   def handleAction(self, server, message):
 
@@ -347,7 +355,7 @@ class PersistMail:
     sid = message['session']
     self.profiles.checkAccess(sid,['ADMIN','USER'])
 
-    con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
+    con = psycopg2.connect(host=self.config.configs['database_host'], dbname=self.config.configs['database_database'], user=self.config.configs['database_user'], password=self.config.configs['database_password'])
     try:
       email = message['mail']
       if email == None:
@@ -426,6 +434,7 @@ class UpdateUser:
   req = inject.attr(Users)
   events = inject.attr(Events)
   profiles = inject.attr(Profiles)
+  config = inject.attr(Config)
 
 
   def handleAction(self, server, message):
@@ -448,7 +457,7 @@ class UpdateUser:
     sid = message['session']
     self.profiles.checkAccess(sid,['ADMIN','USER'])
 
-    con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
+    con = psycopg2.connect(host=self.config.configs['database_host'], dbname=self.config.configs['database_database'], user=self.config.configs['database_user'], password=self.config.configs['database_password'])
     try:
       user = message['user']
       if user == None:
@@ -511,6 +520,7 @@ class FindUser:
 
   req = inject.attr(Users)
   profiles = inject.attr(Profiles)
+  config = inject.attr(Config)
 
 
   def handleAction(self, server, message):
@@ -522,7 +532,7 @@ class FindUser:
     sid = message['session']
     self.profiles.checkAccess(sid,['ADMIN','USER'])
 
-    con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
+    con = psycopg2.connect(host=self.config.configs['database_host'], dbname=self.config.configs['database_database'], user=self.config.configs['database_user'], password=self.config.configs['database_password'])
     try:
       if ((message['user'] == None) or (message['user']['id'] == None)):
           raise MalformedMessage()
@@ -571,6 +581,7 @@ class ListUsers:
 
   req = inject.attr(Users)
   profiles = inject.attr(Profiles)
+  config = inject.attr(Config)
 
   def handleAction(self, server, message):
 
@@ -581,7 +592,7 @@ class ListUsers:
     sid = message['session']
     self.profiles.checkAccess(sid,['ADMIN','USER'])
 
-    con = psycopg2.connect(host='127.0.0.1', dbname='orion', user='dcsys', password='dcsys')
+    con = psycopg2.connect(host=self.config.configs['database_host'], dbname=self.config.configs['database_database'], user=self.config.configs['database_user'], password=self.config.configs['database_password'])
     try:
       rdata = self.req.listUsers(con)
 
