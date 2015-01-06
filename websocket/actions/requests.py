@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 import json, uuid, psycopg2, inject
+import hashlib
 from model.requests import Requests
 from model.users import Users
 from model.objectView import ObjectView
 from model.events import Events
 from model.profiles import Profiles
 from model.mail import Mail
+from model.userPassword import UserPassword
 from wexceptions import MalformedMessage
+
 
 """
     Modulo de acceso a la capa de las peticiones de cuentas.
@@ -242,6 +245,7 @@ class ApproveAccountRequest:
   profiles = inject.attr(Profiles)
   events = inject.attr(Events)
   mail = inject.attr(Mail)
+  userPass = inject.attr(UserPassword)
 
 
   def sendEvents(self,server,req_id,user_id):
@@ -290,6 +294,14 @@ class ApproveAccountRequest:
             'user_id':user_id,
             'email':req['email']
       })
+
+      ''' autogenero un password usando sha1 y uuid '''
+      creds = {
+        'user_id':user_id,
+        'username':user['dni'],
+        'password': hashlib.sha1(str(uuid.uuid4())).hexdigest()
+      }
+      self.userPass.createUserPassword(con,creds)
       self.req.removeRequest(con,reqId)
 
       con.commit()

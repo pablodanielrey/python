@@ -58,7 +58,13 @@ class UserPassword:
             raise e
 
 
-
+    """
+    {
+        user_id:''
+        username:''
+        password:''
+    }
+    """
     def createUserPassword(self,con,data):
         try:
             user = ObjectView(data)
