@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
   ''' codigo de inicialización del servidor '''
 
-  websocketServer = SimpleWebSocketServer('192.168.0.100',8001,WebsocketServer,actions)
+  websocketServer = SimpleWebSocketServer(config.configs['server_ip'],int(config.configs['server_port']),WebsocketServer,actions)
 #  httpServer = SocketServer.TCPServer(('192.168.0.100',8002), MyHttpServerRequestHandler)
 
   def close_sig_handler(signal,frame):
