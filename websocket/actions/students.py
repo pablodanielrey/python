@@ -48,7 +48,7 @@ class CreateStudent:
 
     if 'student' not in message:
         response = {'id':message['id'], 'error':'no existe la info del estudiante'}
-        server.sendMessage(json.dumps(response))
+        server.sendMessage(response)
         return True
 
     """ chequeo que exista la sesion, etc """
@@ -63,7 +63,7 @@ class CreateStudent:
       con.commit()
 
       response = {'id':message['id'], 'ok':''}
-      server.sendMessage(json.dumps(response))
+      server.sendMessage(response)
 
       event = {
         'type':'UserUpdatedEvent',
@@ -120,12 +120,12 @@ class FindStudent:
 
     if 'student' not in message:
         response = {'id':message['id'], 'error':'no existe la info del estudiante'}
-        server.sendMessage(json.dumps(response))
+        server.sendMessage(response)
         return True
 
     if 'id' not in message['student']:
         response = {'id':message['id'], 'error':'no existe la info del estudiante'}
-        server.sendMessage(json.dumps(response))
+        server.sendMessage(response)
         return True
 
     """ chequeo que exista la sesion, etc """
@@ -138,7 +138,7 @@ class FindStudent:
       st = message['student']
       student = self.students.findStudent(con,st['id'])
       response = {'id':message['id'], 'student':student, 'ok':''}
-      server.sendMessage(json.dumps(response))
+      server.sendMessage(response)
 
       return True
 

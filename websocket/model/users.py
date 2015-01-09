@@ -72,23 +72,23 @@ class Users:
     def createUser(self,con,data):
         user = ObjectView(data)
         uid = str(uuid.uuid4())
-        rreq = (uid,user.dni,user.name,user.lastname)
+        rreq = (uid,user.dni,user.name,user.lastname,user.city,user.country,user.address,user.genre,user.birthdate)
         cur = con.cursor()
-        cur.execute('insert into users (id,dni,name,lastname) values (%s,%s,%s,%s)', rreq)
+        cur.execute('insert into users (id,dni,name,lastname,city,country,address,genre,birthdate) values (%s,%s,%s,%s,%s,%s,%s,%s,%s)', rreq)
         return uid
 
     def updateUser(self,con,data):
         user = ObjectView(data)
-        rreq = (user.dni,user.name,user.lastname, user.id)
+        rreq = (user.dni,user.name,user.lastname,user.city,user.country,user.address,user.genre,user.birthdate, user.id)
         cur = con.cursor()
-        cur.execute('update users set dni = %s, name = %s, lastname = %s where id = %s', rreq)
+        cur.execute('update users set dni = %s, name = %s, lastname = %s, city = %s, country = %s, address = %s, genre = %s, birthdate = %s where id = %s', rreq)
         if cur.rowcount <= 0:
             raise Exception()
 
 
     def findUserByDni(self,con,dni):
         cur = con.cursor()
-        cur.execute('select id,dni,name,lastname from users where dni = %s', (dni,))
+        cur.execute('select id,dni,name,lastname,city,country,address,genre,birthdate from users where dni = %s', (dni,))
         data = cur.fetchone()
         if data != None:
             return self.convertUserToDict(data)
@@ -97,7 +97,7 @@ class Users:
 
     def findUser(self,con,id):
         cur = con.cursor()
-        cur.execute('select id,dni,name,lastname from users where id = %s', (id,))
+        cur.execute('select id,dni,name,lastname,city,country,address,genre,birthdate from users where id = %s', (id,))
         data = cur.fetchone()
         if data != None:
             return self.convertUserToDict(data)
@@ -106,7 +106,7 @@ class Users:
 
     def listUsers(self, con):
         cur = con.cursor()
-        cur.execute('select id,dni,name,lastname from users')
+        cur.execute('select id,dni,name,lastname,city,country,address,genre,birthdate from users')
         data = cur.fetchall()
         rdata = []
         for d in data:
@@ -120,6 +120,11 @@ class Users:
                 'id':d[0],
                 'dni':d[1],
                 'name':d[2],
-                'lastname':d[3]
+                'lastname':d[3],
+                'city':d[4],
+                'country':d[5],
+                'address':d[6],
+                'genre':d[7],
+                'birthdate':d[8]
             }
         return rdata

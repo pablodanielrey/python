@@ -68,7 +68,7 @@ class RemoveAccountRequest:
       con.commit()
 
       response = {'id':pid, 'ok':'petición eliminada correctamente'}
-      server.sendMessage(json.dumps(response))
+      server.sendMessage(response)
 
       event = {
         'type':'AccountRequestRemovedEvent',
@@ -145,7 +145,7 @@ class CreateAccountRequest:
       con.commit()
 
       response = {'id':pid, 'ok':'petición creada correctamente'}
-      server.sendMessage(json.dumps(response))
+      server.sendMessage(response)
 
       event = {
         'type':'NewAccountRequestEvent',
@@ -208,7 +208,7 @@ class ListAccountRequests:
     try:
       rdata = self.req.listRequests(con)
       response = {'id':message['id'], 'ok':'', 'requests': rdata}
-      server.sendMessage(json.dumps(response))
+      server.sendMessage(response)
       return True
 
     finally:
@@ -316,7 +316,7 @@ class ApproveAccountRequest:
       con.commit()
 
       response = {'id':pid, 'ok':'usuario creado correctamente'}
-      server.sendMessage(json.dumps(response))
+      server.sendMessage(response)
 
       self.sendEvents(server,reqId,user_id)
 

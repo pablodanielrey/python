@@ -59,14 +59,14 @@ class RemoveMail:
 
       if 'mail_id' not in message:
           response = {'id':message['id'], 'error':''}
-          server.sendMessage(json.dumps(response))
+          server.sendMessage(response)
           return True
 
       mail_id = message['mail_id']
       email = self.users.findMail(con,mail_id)
       if email == None:
           response = {'id':message['id'], 'error':'mail inexistente'}
-          server.sendMessage(json.dumps(response))
+          server.sendMessage(response)
           return True
 
       ''' chequeo que sea admin para cambiar el mail de otro '''
@@ -79,7 +79,7 @@ class RemoveMail:
       con.commit()
 
       response = {'id':message['id'], 'ok':''}
-      server.sendMessage(json.dumps(response))
+      server.sendMessage(response)
 
       event = {
         'type':'UserUpdatedEvent',
@@ -91,7 +91,7 @@ class RemoveMail:
     except psycopg2.DatabaseError, e:
 
         response = {'id':message['id'], 'error':''}
-        server.sendMessage(json.dumps(response))
+        server.sendMessage(response)
 
     finally:
         if con:
@@ -187,13 +187,13 @@ class ConfirmMail:
           email = message['mail_id']
           if email == None:
               response = {'id':message['id'], 'error':''}
-              server.sendMessage(json.dumps(response))
+              server.sendMessage(response)
               return True
 
           mail = self.users.findMail(con,email);
           if mail == None:
               response = {'id':message['id'], 'error':'mail inxesistente'}
-              server.sendMessage(json.dumps(response))
+              server.sendMessage(response)
               return True
 
 
@@ -205,7 +205,7 @@ class ConfirmMail:
 
           self.generateConfirmation(con,mail,message['url'])
           response = {'id':message['id'], 'ok':'email de confirmación enviado'}
-          server.sendMessage(json.dumps(response))
+          server.sendMessage(response)
 
           event = {
             'type':'UserUpdatedEvent',
@@ -221,19 +221,19 @@ class ConfirmMail:
           email = message['hash']
           if email == None:
               response = {'id':message['id'], 'error':''}
-              server.sendMessage(json.dumps(response))
+              server.sendMessage(response)
               return True
 
           mail = self.users.findMailByHash(con,email);
           if mail == None:
               response = {'id':message['id'], 'error':'mail inxesistente'}
-              server.sendMessage(json.dumps(response))
+              server.sendMessage(response)
               return True
 
           self.confirm(con,mail)
 
           response = {'id':message['id'], 'ok':''}
-          server.sendMessage(json.dumps(response))
+          server.sendMessage(response)
 
           event = {
             'type':'UserUpdatedEvent',
@@ -308,7 +308,7 @@ class ListMails:
       rdata = self.users.listMails(con, message['user_id'])
       response = {'id':message['id'], 'ok':'', 'mails': rdata}
       print json.dumps(response);
-      server.sendMessage(json.dumps(response))
+      server.sendMessage(response)
       return True
 
     finally:
@@ -360,14 +360,14 @@ class PersistMail:
       email = message['mail']
       if email == None:
           response = {'id':message['id'], 'error':''}
-          server.sendMessage(json.dumps(response))
+          server.sendMessage(response)
           return True
 
 
       user = self.users.findUser(con,email['user_id']);
       if user == None:
           response = {'id':message['id'], 'error':'usuario inválido'}
-          server.sendMessage(json.dumps(response))
+          server.sendMessage(response)
           return True
 
 
@@ -381,7 +381,7 @@ class PersistMail:
       con.commit()
 
       response = {'id':message['id'], 'ok':''}
-      server.sendMessage(json.dumps(response))
+      server.sendMessage(response)
 
       event = {
         'type':'UserUpdatedEvent',
@@ -417,6 +417,11 @@ peticion:
         "name":'nombre',
         "lastname":'apellido',
         "dni":"dni",
+        'city':"ciudad actual"
+        'country':"pais actual"
+        'address':"direccion actual"
+        'genre':"género"
+        'birthdate':"fecha de nacimiento"
     }
 }
 
@@ -467,7 +472,7 @@ class UpdateUser:
       con.commit()
 
       response = {'id':message['id'], 'ok':''}
-      server.sendMessage(json.dumps(response))
+      server.sendMessage(response)
 
       event = {
         'type':'UserUpdatedEvent',
@@ -504,10 +509,15 @@ respuesta:
     "id":"id de la petición",
     "user":[
         {
-         "id":"",
-         "dni":"",
-         "name":"",
-         "lastname":""
+        "id":"id de usuario",
+        "name":'nombre',
+        "lastname":'apellido',
+        "dni":"dni",
+        'city':"ciudad actual"
+        'country':"pais actual"
+        'address':"direccion actual"
+        'genre':"género"
+        'birthdate':"fecha de nacimiento"
         }
       ],
     "ok":"",
@@ -540,7 +550,7 @@ class FindUser:
       id = message['user']['id']
       user = self.req.findUser(con,id)
       response = {'id':message['id'], 'ok':'', 'user': user}
-      server.sendMessage(json.dumps(response))
+      server.sendMessage(response)
       return True
 
     finally:
@@ -603,7 +613,7 @@ class ListUsers:
           rdata = filter(lambda x: x['id'] in message['ids'], rdata)
 
       response = {'id':message['id'], 'ok':'', 'users': rdata}
-      server.sendMessage(json.dumps(response))
+      server.sendMessage(response)
       return True
 
     finally:

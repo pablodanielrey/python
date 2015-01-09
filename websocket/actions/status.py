@@ -34,7 +34,7 @@ class GetStatus:
             'ok': '',
             'sessions': self.session.getSessions()
         }
-        server.sendMessage(json.dumps(msg))
+        server.sendMessage(msg)
 
 
         return True

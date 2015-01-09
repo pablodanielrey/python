@@ -6,7 +6,10 @@ create table users (
     name varchar,
     lastname varchar,
     genre varchar,
-    birthdate date
+    birthdate date,
+    city varchar,
+    country varchar,
+    address varchar
 );
 
 create table user_mails (

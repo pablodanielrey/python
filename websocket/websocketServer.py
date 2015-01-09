@@ -1,6 +1,7 @@
 
 from Ws.SimpleWebSocketServer import WebSocket, SimpleWebSocketServer
 import json
+import datetime
 from wexceptions import MalformedMessage
 from model.profiles import AccessDenied
 
@@ -25,6 +26,20 @@ class NotImplemented(Exception):
 
 
 
+
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, obj):
+
+        if isinstance(obj, datetime.datetime):
+            return obj.isoformat()
+
+        if isinstance(obj, datetime.date):
+            return obj.isoformat()
+
+        return json.JSONEncoder.default(self, obj)
+
+
+
 class WebsocketServer(WebSocket):
 
   def setActions(self,actions):
@@ -32,12 +47,12 @@ class WebsocketServer(WebSocket):
 
   def sendException(self,e):
       msg = {'type':'Exception','name':e.__class__.__name__}
-      jmsg = json.dumps(msg)
+      jmsg = json.dumps(msg, cls=DateTimeEncoder)
       self.sendMessage(jmsg)
 
   def sendError(self,msg,e):
       mmsg = {'id':msg['id'],'error':e.__class__.__name__}
-      jmsg = json.dumps(mmsg)
+      jmsg = json.dumps(mmsg, cls=DateTimeEncoder)
       self.sendMessage(jmsg)
 
   def handleMessage(self):
@@ -80,8 +95,10 @@ class WebsocketServer(WebSocket):
 
 
   def sendMessage(self,msg):
-      print 'R:' + msg
-      super(WebsocketServer,self).sendMessage(msg)
+      print 'R:' + str(msg)
+      jmsg = json.dumps(msg,cls=DateTimeEncoder)
+      print 'RJ' + jmsg
+      super(WebsocketServer,self).sendMessage(jmsg)
 
 
   def handleConnected(self):

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import json
 import psycopg2
 import inject
 import hashlib
@@ -103,7 +102,7 @@ class ResetPassword:
             con.commit()
 
             response = {'id':message['id'], 'ok':'hash generado correctamente'}
-            server.sendMessage(json.dumps(response))
+            server.sendMessage(response)
 
             return True
 
@@ -185,7 +184,7 @@ class ChangePassword:
                 self.userPassword.resetUserPassword(con,hash,username,password)
 
                 response = {'id':message['id'], 'ok':'se ha cambiado la clave exitósamente'}
-                server.sendMessage(json.dumps(response))
+                server.sendMessage(response)
 
                 con.commit()
 
@@ -201,7 +200,7 @@ class ChangePassword:
             con.commit()
 
             response = {'id':message['id'], 'ok':'se ha cambiado la clave exitósamente'}
-            server.sendMessage(json.dumps(response))
+            server.sendMessage(response)
 
             return True
 
@@ -263,7 +262,7 @@ class Login:
       rdata = self.userPassword.findUserPassword(con,credentials)
       if rdata == None:
         response = {'id':message['id'], 'error':'autentificación denegada'}
-        server.sendMessage(json.dumps(response))
+        server.sendMessage(response)
         return True
 
       sess = {
@@ -274,7 +273,7 @@ class Login:
       sid = self.session.create(sess)
 
       response = {'id':message['id'], 'ok':'', 'session':sid, 'user_id':rdata['user_id']}
-      server.sendMessage(json.dumps(response))
+      server.sendMessage(response)
 
       self.sendEvents(server,rdata['user_id'])
 
@@ -340,8 +339,7 @@ class Logout:
         pass
 
     ok = {'id':message['id'], 'ok':''}
-    response = json.dumps(ok)
-    server.sendMessage(response)
+    server.sendMessage(ok)
 
     if uid:
         self.sendEvents(server,uid)
