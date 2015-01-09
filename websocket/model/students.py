@@ -13,7 +13,10 @@ class Students:
         cur = con.cursor()
         cur.execute('select id,student_number,condition from students where id = %s',(id,))
         s = cur.fetchone()
-        return self.convertToDict(s)
+        if s:
+            return self.convertToDict(s)
+        else:
+            return None
 
     def findStudentByNumber(self,con,n):
         cur = con.cursor()

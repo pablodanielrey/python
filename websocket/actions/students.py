@@ -123,6 +123,11 @@ class FindStudent:
         server.sendMessage(json.dumps(response))
         return True
 
+    if 'id' not in message['student']:
+        response = {'id':message['id'], 'error':'no existe la info del estudiante'}
+        server.sendMessage(json.dumps(response))
+        return True
+
     """ chequeo que exista la sesion, etc """
     sid = message['session']
     self.profiles.checkAccess(sid,['ADMIN','USER'])
