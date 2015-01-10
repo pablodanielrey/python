@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 import uuid
-import time
+import datetime
 import inject
+import psycopg2
+import json
 
 from model.config import Config
+from model.utils import DateTimeEncoder
 
 """
 datos de la entidad:
@@ -34,61 +37,102 @@ class SessionExpired(Exception):
 
 class Session:
 
-    expire = int(60 * 60)
-    sessions = []
+    expire = datetime.timedelta(hours=1)
     config = inject.attr(Config)
 
 
     def __str__(self):
-        sr = ''
-        for s in self.sessions:
-            sr = sr + str(s) + '\n'
-        return sr
+        return ''
+
+    def convertToDict(self,s):
+        session = {
+            'id':s[0],
+            'data':self.jsonToSession(s[1]),
+            'expire':s[2]
+        }
+        return session
+
+    def sessionToJson(self,s):
+        jmsg = json.dumps(s, cls=DateTimeEncoder)
+        return jmsg
+
+    def jsonToSession(self,j):
+        s = json.loads(j)
+        return s
 
 
     def findSession(self,id):
-        for s in self.sessions:
-            if (s[self.config.configs['session_id']] == id):
-                return s
-        raise SessionNotFound()
+        con = psycopg2.connect(host=self.config.configs['database_host'], dbname=self.config.configs['database_database'], user=self.config.configs['database_user'], password=self.config.configs['database_password'])
+        try:
+            self.removeExpired(con)
+            cur = con.cursor()
+            cur.execute('select id,data,expire from sessions where id = %s',(id,))
+            s = cur.fetchone()
+            if s:
+                return self.convertToDict(s)
+            else:
+                raise SessionNotFound()
+
+        finally:
+            con.close()
 
 
-    def checkTime(self,s,t):
-        return (s['expire'] <= t)
-
-    def removeExpired(self):
-        expire = time.time()
-        for s in self.sessions:
-            if self.checkTime(s,expire):
-                print 'Expirando session : ' + str(s)
-                self.sessions.remove(s)
-
+    def removeExpired(self,con):
+        cur = con.cursor()
+        cur.execute('delete from sessions where expire < now()')
 
 
     def getSessions(self):
-        return self.sessions
+        con = psycopg2.connect(host=self.config.configs['database_host'], dbname=self.config.configs['database_database'], user=self.config.configs['database_user'], password=self.config.configs['database_password'])
+        try:
+            self.removeExpired(con)
+            cur = con.cursor()
+            cur.execute('select id,data,expire from sessions')
+            ss = cur.fetchall()
+            sessions = []
+            if ss:
+                for s in ss:
+                    sessions.append(self.convertToDict(s))
+
+            return sessions
+
+        finally:
+            con.close()
+
+
 
     def create(self,data):
-        self.removeExpired()
-        id = str(uuid.uuid4());
-        actual = time.time()
-        expire = actual + self.expire
-        self.sessions.append({
-            self.config.configs['session_id']:id,
-            'data':data,
-            'expire':expire
-        });
-        return id
+        con = psycopg2.connect(host=self.config.configs['database_host'], dbname=self.config.configs['database_database'], user=self.config.configs['database_user'], password=self.config.configs['database_password'])
+        try:
+            self.removeExpired(con)
+            id = str(uuid.uuid4());
+            actual = datetime.datetime.now()
+            expire = actual + self.expire
+            session = (id,self.sessionToJson(data),expire)
+
+            cur = con.cursor()
+            cur.execute('insert into sessions (id,data,expire) values (%s,%s,%s)',session)
+
+            con.commit()
+            return id
+
+        finally:
+            con.close()
+
+
 
     def destroy(self, id):
-        s = self.findSession(id)
-        self.sessions.remove(s)
-        self.removeExpired()
+        con = psycopg2.connect(host=self.config.configs['database_host'], dbname=self.config.configs['database_database'], user=self.config.configs['database_user'], password=self.config.configs['database_password'])
+        try:
+            self.removeExpired(con)
+            cur = con.cursor()
+            cur.execute('delete from sessions where id = %s',(id,))
+            con.commit()
+
+        finally:
+            con.close()
+
 
     def getSession(self,id):
         s = self.findSession(id)
-        expire = time.time()
-        if self.checkTime(s,expire):
-            raise SessionExpired()
-        self.removeExpired()
         return s['data']

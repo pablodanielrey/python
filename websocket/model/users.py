@@ -70,9 +70,16 @@ class Users:
     """-------------------------------"""
 
     def createUser(self,con,data):
-        user = ObjectView(data)
         uid = str(uuid.uuid4())
-        rreq = (uid,user.dni,user.name,user.lastname,user.city,user.country,user.address,user.genre,user.birthdate)
+        rreq = ( uid,
+                data['dni'],
+                data['name'],
+                data['lastname'],
+                data['city'] if 'city' in data else '',
+                data['country'] if 'country' in data else '',
+                data['address'] if 'address' in data else '',
+                data['genre'] if 'genre' in data else '',
+                data['birthdate'] if 'birthdate' in data else None)
         cur = con.cursor()
         cur.execute('insert into users (id,dni,name,lastname,city,country,address,genre,birthdate) values (%s,%s,%s,%s,%s,%s,%s,%s,%s)', rreq)
         return uid

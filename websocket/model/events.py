@@ -38,7 +38,5 @@ class Events:
         self.broadcastRemote(server,msg)
 
     def broadcastRemote(self,server,msg):
-        broadcast = json.dumps(msg)
-        print 'B:' + broadcast
         for c in server.server.connections.itervalues():
-          c.sendMessage(broadcast)
+          c.sendMessage(msg)

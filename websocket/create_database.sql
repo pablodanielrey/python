@@ -70,3 +70,9 @@ create table logs (
   log varchar not null,
   user_id varchar references users (id)
 );
+
+create table sessions (
+  id varchar not null primary key,
+  data varchar,
+  expire timestamp default now()
+);

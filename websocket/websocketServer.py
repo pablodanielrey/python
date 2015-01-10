@@ -2,8 +2,10 @@
 from Ws.SimpleWebSocketServer import WebSocket, SimpleWebSocketServer
 import json
 import datetime
+import traceback
 from wexceptions import MalformedMessage
 from model.profiles import AccessDenied
+from model.utils import DateTimeEncoder
 
 
 
@@ -23,20 +25,6 @@ class NotImplemented(Exception):
 
     def __str__(self):
         return self.__class__.__name__
-
-
-
-
-class DateTimeEncoder(json.JSONEncoder):
-    def default(self, obj):
-
-        if isinstance(obj, datetime.datetime):
-            return obj.isoformat()
-
-        if isinstance(obj, datetime.date):
-            return obj.isoformat()
-
-        return json.JSONEncoder.default(self, obj)
 
 
 
@@ -78,11 +66,13 @@ class WebsocketServer(WebSocket):
 
       except AccessDenied as e:
           print e.__class__.__name__ + ' ' + str(e)
+          traceback.print_exc()
           self.sendError(message,e)
           managed = True
 
       except Exception as e:
           print e.__class__.__name__ + ' ' + str(e)
+          traceback.print_exc()
           self.sendError(message,e)
           raise e
 
@@ -91,6 +81,7 @@ class WebsocketServer(WebSocket):
 
     except Exception as e:
       print e.__class__.__name__ + ' ' + str(e)
+      traceback.print_exc()
       self.sendException(e)
 
 

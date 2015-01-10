@@ -287,7 +287,7 @@ class ApproveAccountRequest:
     try:
       req = self.req.findRequest(con,reqId)
       if (req == None):
-          return True
+          raise MalformedMessage()
 
       user = self.users.findUserByDni(con,req['dni'])
       if user != None:
