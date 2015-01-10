@@ -27,12 +27,38 @@ create table user_telephones (
 );
 
 
+
+
+create table systems (
+    id varchar not null primary key,
+    name varchar not null,
+    config varchar
+);
+
+
+
+
+create table groups (
+    id varchar not null primary key,
+    system_id varchar not null references systems (id),
+    name varchar not null
+);
+
+
+
+
+
+
+
 create table user_password (
     id varchar not null primary key,
     user_id varchar not null references users (id),
     username varchar not null unique,
     password varchar not null
 );
+
+
+
 
 
 create table account_requests (
@@ -64,12 +90,14 @@ create table students (
 );
 
 
+
 create table logs (
   id serial primary key,
   creation timestamp default now(),
   log varchar not null,
   user_id varchar references users (id)
 );
+
 
 create table sessions (
   id varchar not null primary key,

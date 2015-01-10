@@ -19,6 +19,7 @@ from actions.requests import CreateAccountRequest, ListAccountRequests, ApproveA
 from actions.users import UpdateUser, FindUser, ListUsers, ListMails, PersistMail, ConfirmMail, RemoveMail
 from actions.status import GetStatus
 from actions.students import CreateStudent, FindStudent
+from actions.groups import ListGroups
 
 from model.session import Session
 from model.config import Config
@@ -48,7 +49,8 @@ if __name__ == '__main__':
     CreateAccountRequest(), ListAccountRequests(), ApproveAccountRequest(), RemoveAccountRequest(),
     ListUsers(), UpdateUser(), FindUser(), ListMails(), PersistMail(), ConfirmMail(), RemoveMail(),
     GetStatus(),
-    CreateStudent(), FindStudent()
+    CreateStudent(), FindStudent(),
+    ListGroups()
   ]
 
 
