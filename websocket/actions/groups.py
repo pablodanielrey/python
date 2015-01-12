@@ -5,6 +5,74 @@ from model.groups import Groups
 from model.profiles import Profiles
 from model.config import Config
 
+
+
+"""
+
+peticion:
+{
+    "id":"",
+    "action":"findMembers"
+    "session":"sesion de usuario"
+    "group":{
+        "id":"id de grupo"
+    }
+}
+
+respuesta:
+{
+    "id":"id de la petición",
+    "group":[
+        {
+        "id":"id del grupo",
+        "members": [
+                {
+                    id: 'id de usuario'
+                }
+            ]
+        }
+      ],
+    "ok":"",
+    "error":""
+}
+
+"""
+
+class FindMembers:
+
+  groups = inject.attr(Groups)
+  profiles = inject.attr(Profiles)
+  config = inject.attr(Config)
+
+
+  def handleAction(self, server, message):
+
+    if (message['action'] != 'findMembers'):
+        return False
+
+    """ chequeo que exista la sesion, etc """
+    sid = message['session']
+    self.profiles.checkAccess(sid,['ADMIN','USER'])
+
+    con = psycopg2.connect(host=self.config.configs['database_host'], dbname=self.config.configs['database_database'], user=self.config.configs['database_user'], password=self.config.configs['database_password'])
+    try:
+      if ((message['group'] == None) or (message['group']['id'] == None)):
+          raise MalformedMessage()
+
+      id = message['group']['id']
+      members = self.groups.findMembers(con,id)
+      group = {
+        'id':id,
+        'members':members
+      }
+      response = {'id':message['id'], 'ok':'', 'group':group }
+      server.sendMessage(response)
+      return True
+
+    finally:
+        con.close()
+
+
 """
 
 peticion:

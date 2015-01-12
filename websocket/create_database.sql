@@ -45,7 +45,11 @@ create table groups (
 );
 
 
-
+create table groups_users (
+    user_id varchar not null references users (id),
+    group_id varchar not null references groups (id),
+    constraint primary_key_group_users unique (user_id,group_id)
+);
 
 
 
