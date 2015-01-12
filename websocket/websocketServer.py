@@ -35,13 +35,11 @@ class WebsocketServer(WebSocket):
 
   def sendException(self,e):
       msg = {'type':'Exception','name':e.__class__.__name__}
-      jmsg = json.dumps(msg, cls=DateTimeEncoder)
-      self.sendMessage(jmsg)
+      self.sendMessage(msg)
 
   def sendError(self,msg,e):
       mmsg = {'id':msg['id'],'error':e.__class__.__name__}
-      jmsg = json.dumps(mmsg, cls=DateTimeEncoder)
-      self.sendMessage(jmsg)
+      self.sendMessage(mmsg)
 
   def handleMessage(self):
     try:
