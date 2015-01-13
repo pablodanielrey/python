@@ -2,6 +2,13 @@
 
 class Groups:
 
+
+    def addMembers(self,con,id,members):
+        cur = con.cursor()
+        for uid in members:
+            cur.execute('insert into groups_users (group_id,user_id) values (%s,%s)',(id,uid))
+
+
     def removeMembers(self,con,id,members):
         cur = con.cursor()
         for uid in members:
