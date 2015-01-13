@@ -4,6 +4,7 @@ import json, uuid, inject
 from model.groups import Groups
 from model.profiles import Profiles
 from model.config import Config
+from model.events import Events
 
 
 
@@ -38,6 +39,7 @@ class RemoveMembers:
   groups = inject.attr(Groups)
   profiles = inject.attr(Profiles)
   config = inject.attr(Config)
+  events = inject.attr(Events)
 
 
   def handleAction(self, server, message):
@@ -61,6 +63,14 @@ class RemoveMembers:
 
       response = {'id':message['id'], 'ok':'' }
       server.sendMessage(response)
+
+
+      event = {
+        'type':'GroupUpdatedEvent',
+        'data':id
+      }
+      self.events.broadcast(server,event)
+
       return True
 
     finally:
