@@ -5,6 +5,73 @@ from model.groups import Groups
 from model.profiles import Profiles
 from model.config import Config
 from model.events import Events
+from model.objectView import ObjectView
+
+
+"""
+
+peticion:
+{
+    "id":"",
+    "action":"updateGroup"
+    "session":"sesion de usuario"
+    "group":{
+        "id":"id de grupo",
+        "systemId":'id de sistema',
+        "name":'nombre del grupo'
+    }
+}
+
+respuesta:
+{
+    "id":"id de la petición",
+    "ok":"",
+    "error":""
+}
+
+"""
+
+class UpdateGroup:
+
+  groups = inject.attr(Groups)
+  profiles = inject.attr(Profiles)
+  config = inject.attr(Config)
+  events = inject.attr(Events)
+
+
+  def handleAction(self, server, message):
+
+    if (message['action'] != 'updateGroup'):
+        return False
+
+    """ chequeo que exista la sesion, etc """
+    sid = message['session']
+    self.profiles.checkAccess(sid,['ADMIN','USER'])
+
+    con = psycopg2.connect(host=self.config.configs['database_host'], dbname=self.config.configs['database_database'], user=self.config.configs['database_user'], password=self.config.configs['database_password'])
+    try:
+      if ((message['group'] == None) or (message['group']['id'] == None)):
+          raise MalformedMessage()
+
+      group = ObjectView(message['group'])
+      self.groups.updateGroup(con,group)
+      con.commit()
+
+      response = {'id':message['id'], 'ok':'' }
+      server.sendMessage(response)
+
+
+      event = {
+        'type':'GroupUpdatedEvent',
+        'data':group.id
+      }
+      self.events.broadcast(server,event)
+
+      return True
+
+    finally:
+        con.close()
+
 
 
 """

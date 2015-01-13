@@ -2,6 +2,9 @@
 
 class Groups:
 
+    def updateGroup(self,con,group):
+        cur = con.cursor()
+        cur.execute('update groups set name = %s where id = %s',(group.name,group.id))
 
     def addMembers(self,con,id,members):
         cur = con.cursor()
