@@ -2,6 +2,11 @@
 
 class Groups:
 
+    def removeMembers(self,con,id,members):
+        cur = con.cursor()
+        for uid in members:
+            cur.execute('delete from groups_users where group_id = %s and user_id = %s',(id,uid))
+
     def findMembers(self,con,id):
         cur = con.cursor()
         cur.execute('select user_id from groups_users where group_id = %s',(id,))

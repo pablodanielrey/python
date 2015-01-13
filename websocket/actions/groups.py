@@ -12,6 +12,67 @@ from model.config import Config
 peticion:
 {
     "id":"",
+    "action":"removeMembers"
+    "session":"sesion de usuario"
+    "group":{
+        "id":"id de grupo",
+        "members": [
+            {
+                id: "id de usuario a remover"
+            }
+        ]
+    }
+}
+
+respuesta:
+{
+    "id":"id de la petición",
+    "ok":"",
+    "error":""
+}
+
+"""
+
+class RemoveMembers:
+
+  groups = inject.attr(Groups)
+  profiles = inject.attr(Profiles)
+  config = inject.attr(Config)
+
+
+  def handleAction(self, server, message):
+
+    if (message['action'] != 'removeMembers'):
+        return False
+
+    """ chequeo que exista la sesion, etc """
+    sid = message['session']
+    self.profiles.checkAccess(sid,['ADMIN','USER'])
+
+    con = psycopg2.connect(host=self.config.configs['database_host'], dbname=self.config.configs['database_database'], user=self.config.configs['database_user'], password=self.config.configs['database_password'])
+    try:
+      if ((message['group'] == None) or (message['group']['id'] == None)):
+          raise MalformedMessage()
+
+      id = message['group']['id']
+      members = message['group']['members']
+      self.groups.removeMembers(con,id,members)
+      con.commit()
+
+      response = {'id':message['id'], 'ok':'' }
+      server.sendMessage(response)
+      return True
+
+    finally:
+        con.close()
+
+
+
+"""
+
+peticion:
+{
+    "id":"",
     "action":"findMembers"
     "session":"sesion de usuario"
     "group":{
