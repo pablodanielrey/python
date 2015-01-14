@@ -13,6 +13,73 @@ from model.objectView import ObjectView
 peticion:
 {
     "id":"",
+    "action":"createGroup"
+    "session":"sesion de usuario"
+    "group":{
+        "systemId":'id de sistema',
+        "name":'nombre del grupo'
+    }
+}
+
+respuesta:
+{
+    "id":"id de la petición",
+    "ok":"",
+    "error":""
+}
+
+"""
+
+class CreateGroup:
+
+  groups = inject.attr(Groups)
+  profiles = inject.attr(Profiles)
+  config = inject.attr(Config)
+  events = inject.attr(Events)
+
+
+  def handleAction(self, server, message):
+
+    if (message['action'] != 'createGroup'):
+        return False
+
+    """ chequeo que exista la sesion, etc """
+    sid = message['session']
+    self.profiles.checkAccess(sid,['ADMIN','USER'])
+
+    con = psycopg2.connect(host=self.config.configs['database_host'], dbname=self.config.configs['database_database'], user=self.config.configs['database_user'], password=self.config.configs['database_password'])
+    try:
+      if ((message['group'] == None) or (message['group']['systemId'] == None) or (message['group']['name'] == None)):
+          raise MalformedMessage()
+
+
+      id = str(uuid.uuid4())
+      message['group']['id'] = id
+      group = ObjectView(message['group'])
+      self.groups.createGroup(con,group)
+      con.commit()
+
+      response = {'id':message['id'], 'ok':'' }
+      server.sendMessage(response)
+
+
+      event = {
+        'type':'GroupCreatedEvent',
+        'data':group.id
+      }
+      self.events.broadcast(server,event)
+
+      return True
+
+    finally:
+        con.close()
+
+
+"""
+
+peticion:
+{
+    "id":"",
     "action":"updateGroup"
     "session":"sesion de usuario"
     "group":{

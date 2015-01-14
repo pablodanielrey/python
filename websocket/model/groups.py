@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
+import uuid
 
 class Groups:
+
+    def createGroup(self,con,group):
+        cur = con.cursor()
+        cur.execute('insert into groups (id,system_id,name) values (%s,%s,%s)',(group.id,group.systemId,group.name))
 
     def updateGroup(self,con,group):
         cur = con.cursor()
