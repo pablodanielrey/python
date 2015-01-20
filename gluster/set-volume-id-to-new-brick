@@ -1,0 +1,15 @@
+
+en un nodo que este funcionadno correctamente :
+
+getfattr -d -e hex -m . /data/brick/gluster
+
+eso tira la info del id del volumen que hay que setear usando setfattr a la raiz del volumen
+tambien se puede sacar de por ejemplo :
+cat /var/lib/glusterd/vols/datos/info 
+
+bla bla bla
+volume-id=f652bb5b-d620-4e4e-958e-cce64d0949c1
+bla bla bla
+
+setfattr -n trusted.glusterfs.volume-id -v 0xf652bb5bd6204e4e958ecce64d0949c1 /data/brick/gluster
+
