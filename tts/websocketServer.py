@@ -48,6 +48,9 @@ class WebsocketServer(WebSocket):
       print 'C:' + self.data
       message = json.loads(str(self.data))
 
+      if 'say' not in message:
+          raise NotImplemented()
+
       msg = message['say']
       print 'pronouncing : %s' % msg
       self.queue.put(msg)
