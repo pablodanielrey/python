@@ -1,1 +1,3 @@
+
 https://github.com/Oneiroi/sysadmin/tree/master/linux/filesystem/gluster
+http://blog.oneiroi.co.uk/linux/gluster-resolving-a-split-brain-in-a-replicated-setup/
