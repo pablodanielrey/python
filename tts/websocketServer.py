@@ -55,7 +55,7 @@ class WebsocketServer(WebSocket):
       print 'pronouncing : %s' % msg
       self.queue.put(msg)
 
-      self.sendMessage({'ok':'ok'})
+      self.sendMessage({'ok':''})
 
     except Exception as e:
       print e.__class__.__name__ + ' ' + str(e)
