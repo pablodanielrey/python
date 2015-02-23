@@ -16,12 +16,12 @@ l.simple_bind("cn=admin,dc=econo", "pcucqccp")
 
 with open('/tmp/alumnos-con-mail.csv') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
-        for nombre, apellido, legajo, dni, mail in reader:
+        for dni, legajo, nombre, apellido in reader:
             print "Nombre : ", nombre
             print "Apellido : ", apellido
             print "Legajo : ", legajo
             print "Dni : ", dni
-	    print "Mail : ", mail
+#	    print "Mail : ", mail
 
             suuid = str(uuid.uuid4())
             dn = 'x-dcsys-uuid=' + suuid + ',ou=people,dc=econo'
@@ -35,7 +35,9 @@ with open('/tmp/alumnos-con-mail.csv') as csvfile:
             person['cn'] = nombre + ' ' + apellido
             person['givenName'] = nombre
             person['sn'] = apellido
-            person['userPassword'] = dni
+            person['userPassword'] = dni[-4:]
+	    person['businessCategory'] = 'ingresante'
+	    person['x-dcsys-mail'] = 'correo pendiente'
 
             try:
                 result = l.search_s('ou=people,dc=econo',ldap.SCOPE_SUBTREE, '(x-dcsys-dni='+dni+")",['cn','x-dcsys-dni','sn','x-dcsys-uuid'])

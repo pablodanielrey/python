@@ -20,7 +20,10 @@ countchangesmail = 0
 
 with open('/tmp/alumnos-sin-mail.csv') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
-        for nombre, legajo, dni in reader:
+        for attrs in reader:
+	    nombre = attrs[2]
+	    legajo = attrs[1]
+	    dni = attrs[0]
             print "Nombre : ", nombre
 #            print "Apellido : ", apellido
             print "Legajo : ", legajo
@@ -56,9 +59,9 @@ with open('/tmp/alumnos-sin-mail.csv') as csvfile:
                     person['x-dcsys-dni'] = dni
                     person['x-dcsys-legajo'] = legajo
                     person['uid'] = dni
-                    person['cn'] = nombre + ' ' + apellido
+                    person['cn'] = nombre
                     person['givenName'] = nombre
-                    person['sn'] = apellido
+                    person['sn'] = nombre
                     person['userPassword'] = dni
 		    person['businessCategory'] = 'ingresante'
 		    person['x-dcsys-mail'] = 'correo alternativo pendiente'
