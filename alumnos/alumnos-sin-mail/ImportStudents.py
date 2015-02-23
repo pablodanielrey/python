@@ -39,6 +39,28 @@ with open('/tmp/alumnos-sin-mail.csv') as csvfile:
 
                     l.modify_s(dn,mod_attrs)
 
+		if result == None or result == []:
+  
+		    suuid = str(uuid.uuid4())
+                    dn = 'x-dcsys-uuid=' + suuid + ',ou=people,dc=econo'
+			
+            	    person = {}
+                    person['objectClass'] = ['top','person','inetOrgPerson','x-dcsys-entidad','x-dcsys-persona','x-dcsys-estudiante']
+                    person['x-dcsys-uuid'] = suuid
+                    person['x-dcsys-dni'] = dni
+                    person['x-dcsys-legajo'] = legajo
+                    person['uid'] = dni
+                    person['cn'] = nombre + ' ' + apellido
+                    person['givenName'] = nombre
+                    person['sn'] = apellido
+                    person['userPassword'] = dni
+		    person['businessCategory'] = 'ingresante'
+
+                    print "agregando %s " % dn
+                    print person
+                    l.add_s(dn,modlist.addModlist(person))
+
+
             except ldap.LDAPError, e:
                 print e
 
