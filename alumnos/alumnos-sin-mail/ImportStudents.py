@@ -14,6 +14,10 @@ l = ldap.initialize("ldap://127.0.0.1:3389")
 l.protocol_version = ldap.VERSION3
 l.simple_bind("cn=admin,dc=econo", "pcucqccp")
 
+countnew = 0
+countchanged = 0
+countchangesmail = 0
+
 with open('/tmp/alumnos-sin-mail.csv') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         for nombre, legajo, dni in reader:
@@ -34,8 +38,10 @@ with open('/tmp/alumnos-sin-mail.csv') as csvfile:
 		    mod_attrs = []
 		    if 'x-dcsys-mail' not in attrs:
 			mod_attrs = [(ldap.MOD_REPLACE,'x-dcsys-legajo',legajo),(ldap.MOD_REPLACE,'x-dcsys-mail','correo alternativo pendiente')]
+			countchangesmail = countchangesmail + 1
 		    else:
 			mod_attrs = [(ldap.MOD_REPLACE,'x-dcsys-legajo',legajo)]
+			countchanged = countchanged + 1
 
                     l.modify_s(dn,mod_attrs)
 
@@ -55,7 +61,9 @@ with open('/tmp/alumnos-sin-mail.csv') as csvfile:
                     person['sn'] = apellido
                     person['userPassword'] = dni
 		    person['businessCategory'] = 'ingresante'
+		    person['x-dcsys-mail'] = 'correo alternativo pendiente'
 
+		    countnew = countnew + 1
                     print "agregando %s " % dn
                     print person
                     l.add_s(dn,modlist.addModlist(person))
@@ -65,3 +73,10 @@ with open('/tmp/alumnos-sin-mail.csv') as csvfile:
                 print e
 
 l.unbind_s()
+
+print "cantidad de agregados "
+print countnew
+print "cantidad de modificados sin mail "
+print countchangesmail
+print "cantidad de modificados con mail "
+print countchanged
