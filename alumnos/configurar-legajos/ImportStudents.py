@@ -14,7 +14,7 @@ l = ldap.initialize("ldap://127.0.0.1:3389")
 l.protocol_version = ldap.VERSION3
 l.simple_bind("cn=admin,dc=econo", "pcucqccp")
 
-with open('/tmp/alumnos-legajos.csv') as csvfile:
+with open('/tmp/sto.csv') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         for nombre, legajo, dni in reader:
             print "Nombre : ", nombre
