@@ -3,9 +3,22 @@ import csv
 import pwd
 import grp
 import os
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
 # asigno la ruta donde estan los archivos a la variable path_profiles
-path_profiles = '/media/jano/Archivos/Soporte/github/python/jano/home/samba/profiles/'
-path_home = '/media/jano/Archivos/Soporte/github/python/jano/home/'
+path_home = '/media/jano/Archivos/python/python/jano/home/'
+path_profiles = '/media/jano/Archivos/python/python/jano/home/samba/profiles/'
+
 profiles_mod = 0
 home_mod = 0
 
@@ -31,7 +44,7 @@ for i,row in enumerate(reader):
         if not os.path.islink(home):
             # le cambiamos el nombre a dni
             os.rename(home,home_dni)
-            print '-SI, EXISTE el home '  + usuario + ' y se cambio el nombre a '  + dni
+            print bcolors.WARNING, 'Existe el home ', usuario, 'y se renombro a ', dni, bcolors.ENDC
             print '--------DATOS DEL CSV----------'
             print 'usuario: ' + usuario
             print 'dni: ' + dni
@@ -43,10 +56,13 @@ for i,row in enumerate(reader):
             # os.chmod(home_dni, 0777)
 
             # me fijo cuales son el gid y uid del usuario,ejemplo soporte
-            uid_home = pwd.getpwnam(dni)[2]
-            gid_home = grp.getgrnam(dni)[2]
-            print 'ID de usuario ', dni, uid_home
-            print 'ID de grupo ', dni, gid_home
+            uid_home = pwd.getpwnam('manolo')[2]
+            gid_home = grp.getgrnam('manolo')[2]
+            uid_jano = pwd.getpwnam('jano')[2]
+            print 'ID del usuario ', dni, '>>> ', uid_home
+            print 'ID de grupo ', dni, '>>> ', gid_home
+            print 'ID de de jano >>>', uid_jano
+
             print home_dni
             # cambio el propietario de usuario a dni
             os.chown(home_dni,uid_home,gid_home)
@@ -62,7 +78,7 @@ for i,row in enumerate(reader):
         if not os.path.islink(profile):
             # le cambiamos el nombre a dni
             os.rename(profile,profile_dni)
-            print '-SI, EXISTE el profile '  + usuario + ' y se cambio el nombre a '  + dni
+            print bcolors.WARNING, 'Existe el perfil ', usuario, 'y se renombro a ', dni, bcolors.ENDC
             print '--------DATOS DEL CSV----------'
             print 'usuario: ' + usuario
             print 'dni: ' + dni
@@ -72,10 +88,11 @@ for i,row in enumerate(reader):
             # os.chmod(profile_dni, 0777)
 
             # me fijo cuales son el gid y uid del usuario, ejemplo soporte
-            uid_profile = pwd.getpwnam(dni)[2]
-            gid_profile = grp.getgrnam(dni)[2]
-            print 'ID de usuario ', dni, uid_profile
-            print 'ID de grupo ', dni, gid_profile
+            uid_profile = pwd.getpwnam('manolo')[2]
+            gid_profile = grp.getgrnam('manolo')[2]
+            print 'ID del usuario ', dni, '>>> ', uid_profile
+            print 'ID de grupo ', dni, '>>> ', gid_profile
+
             print profile_dni
             # cambio el propietario de usuario a dni
             os.chown(profile_dni,uid_profile,gid_profile)
@@ -88,5 +105,5 @@ for i,row in enumerate(reader):
 
         print '\n'
 
-print 'homes modificados ', home_mod
-print 'Perfiles modificados ', profiles_mod
+print bcolors.BOLD, 'homes modificados ', home_mod, bcolors.ENDC
+print bcolors.BOLD, 'Perfiles modificados ', profiles_mod, bcolors.ENDC
