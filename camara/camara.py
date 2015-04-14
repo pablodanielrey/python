@@ -2,14 +2,12 @@ import cv2
 import sys
 import time
 
-# sys.argv[1] rtsp://127.0.0.1/video.mp4
-
 cam = cv2.VideoCapture(sys.argv[1])
 s, img = cam.read()
 
 fps = 7
-fourcc = cv2.cv.CV_FOURCC('M','P','J','G')
-out = cv2.VideoWriter('output.avi',-1,fps,(640,480))
+fourcc = cv2.cv.CV_FOURCC('F','M','P','4')
+out = cv2.VideoWriter('output.avi',fourcc,fps,(640,480))
 
 while s:
   img = cv2.flip(img,0)
