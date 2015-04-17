@@ -1,0 +1,17 @@
+http://www.informit.com/articles/article.aspx?p=169578&seqNum=3
+
+defer:
+http://twistedmatrix.com/documents/current/core/howto/defer.html
+
+http://heim.ifi.uio.no/~meccano/reflector/smallclient.html
+
+https://twistedmatrix.com/documents/12.0.0/core/howto/clients.html
+
+http://www.laurentluce.com/posts/cars-monitoring-clientserver-application-using-python-twisted/
+
+rfc
+https://www.ietf.org/rfc/rfc2326.txt
+
+
+hecho con socket
+http://stackoverflow.com/questions/28022432/receiving-rtp-packets-after-rtsp-setup
