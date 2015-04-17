@@ -12,7 +12,7 @@ class Echo(protocol.Protocol):
     def dataReceived(self, data):
         "As soon as any data is received, write it back."
         dataStr = data.decode("utf-8")
-        print ("Data: " + dataStr)
+        print (dataStr)
         self.transport.write(("Server send: " + dataStr).encode("utf-8"))
 
 
