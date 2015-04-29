@@ -10,7 +10,7 @@ cn = sys.argv[3]
 dni = sys.argv[4]
 
 try:
-        l = ldap.initialize("ldap://127.0.0.1:3389")
+        l = ldap.initialize("ldap://127.0.0.1:389")
         l.protocol_version = ldap.VERSION3
         l.simple_bind_s(user,passw);
 
@@ -37,6 +37,7 @@ try:
                 print "Ningun grupo"
                 exit(1)                                                                                                                                                                                            
         
+	print(result)
 	dn, groupAttrs = result[0]
 
 	encontrado = False
@@ -66,7 +67,8 @@ try:
 		for uid in attrs['uid']:
 			members.append(uid)
 
-        mod_attrs = [(ldap.MOD_REPLACE,'acl',acls),(ldap.MOD_REPLACE,'memberUid',members)]                                                                                                                                                                     
+        #mod_attrs = [(ldap.MOD_REPLACE,'acl',acls),(ldap.MOD_REPLACE,'memberUid',members)]                                                                                                                                                                     
+        mod_attrs = [(ldap.MOD_REPLACE,'memberUid',members)]                                                                                                                                                                     
         print dn
 	print mod_attrs                                                                                                                                                                                
 
