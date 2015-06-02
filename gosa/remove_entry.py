@@ -9,7 +9,7 @@ passw = sys.argv[2]
 dn = sys.argv[3]
 
 try:
-        l = ldap.initialize("ldap://127.0.0.1:3389")
+        l = ldap.initialize("ldap://127.0.0.1:389")
         l.protocol_version = ldap.VERSION3
         l.simple_bind_s(user,passw);
 
